@@ -81,7 +81,7 @@ export function tiptapToDoc(
 export function createEditor(doc: ScreenplayDoc): Editor {
   return new Editor({
     element: document.createElement('div'),
-    extensions: [StarterKit.configure({ blockquote: false, bulletList: false, codeBlock: false, heading: false, horizontalRule: false, listItem: false, orderedList: false }), BlockNode, SmartKeys],
+    extensions: [StarterKit.configure({ blockquote: false, bulletList: false, codeBlock: false, heading: false, horizontalRule: false, listItem: false, orderedList: false, paragraph: false }), BlockNode, SmartKeys],
     // TipTap 2.27 turns arrays into Fragments (crashes in EditorState.create):
     // always hand it a complete doc object
     content: { type: 'doc', content: docToTiptapContent(doc) },

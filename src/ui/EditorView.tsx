@@ -1,4 +1,5 @@
 import './EditorView.css'
+import '../editor/blocks.css'
 import { EditorContent } from '@tiptap/react'
 import type { Editor } from '@tiptap/core'
 import type { ScreenplayDoc } from '../core/types'
@@ -14,7 +15,7 @@ export default function EditorView(props: {
     onEditorReady?.(editor)
   }, [editor, onEditorReady])
   return (
-    <div className="sf-editor-host" data-direction={props.doc.direction}>
+    <div className="sf-editor-host sf-paper" data-direction={props.doc.direction}>
       <EditorContent editor={editor} />
     </div>
   )

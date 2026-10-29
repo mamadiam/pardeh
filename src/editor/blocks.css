@@ -1,7 +1,11 @@
-export default `.sf-paper {
+/* Screenplay block styling — values mirror the filmnevis constants port
+   (src/core/flow.ts + src/editor/blockStyle.ts). shortcut: table is
+   duplicated here for CSS; unify into generated styles when real
+   pagination (Phase 3) lands. */
+.sf-paper {
   font-family: 'Courier Prime', 'Courier New', Courier, monospace;
   font-size: 12pt;
-  line-height: 1.2;
+  line-height: 1.4;
 }
 
 .sf-block {
@@ -19,4 +23,19 @@ export default `.sf-paper {
 .sf-dialogue {
   margin-block-start: 0;
 }
-`
+
+.sf-character {
+  margin-inline-start: 55.9mm;
+}
+
+.sf-parenthetical {
+  margin-inline-start: 40.6mm;
+}
+
+.sf-dialogue {
+  margin-inline-start: 25.4mm;
+}
+
+.sf-transition {
+  margin-inline-start: 55.9mm;
+}

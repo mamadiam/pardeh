@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ScreenplayDoc } from '../core/types'
 import { saveDoc, openDb } from './db'
 
-type AutosaveStatus = 'saved' | 'error' | 'pending'
+export type AutosaveStatus = 'saved' | 'error' | 'pending'
 
 export interface AutosaveOptions {
   openDbOverride?: typeof openDb
@@ -13,7 +13,7 @@ export interface AutosaveOptions {
 const DEBOUNCE_MS = 800
 
 export function useAutosave(
-  getDoc: () => ScreenplayDoc,
+  getDoc: () => ScreenplayDoc | null,
   id: string,
   deps: unknown[],
   options: AutosaveOptions = {},
@@ -24,25 +24,35 @@ export function useAutosave(
   const debounceMs = options.debounceMs ?? DEBOUNCE_MS
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      let db: PromiseLike<IDBDatabase> | undefined
+    let timer: ReturnType<typeof setTimeout>
+    const run = () => {
+      const doc = getDoc()
+      // editor not mounted yet — never write storage; an unready save
+      // could overwrite a resumable script with a blank document
+      if (!doc) {
+        setStatus('pending')
+        timer = setTimeout(run, debounceMs)
+        return
+      }
+      let dbPromise: PromiseLike<IDBDatabase> | undefined
       try {
-        db = opener()
+        dbPromise = opener()
       } catch {
         setStatus('error')
         return
       }
-      Promise.resolve(db)
-        .then(() => saver(id, getDoc()))
+      Promise.resolve(dbPromise)
+        .then(() => saver(id, doc))
         .then(() => setStatus('saved'))
         .catch(() => setStatus('error'))
-    }, debounceMs)
+    }
+    timer = setTimeout(run, debounceMs)
+    // shortcut: pending saves are not flushed on tab close; some final
+    // keystrokes can be lost (visibilitychange flush when it matters)
     return () => clearTimeout(timer)
-    // deps drive re-saves; eslint-disable because callers pass dynamic deps
+    // deps drive re-saves; callers pass dynamic deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, debounceMs, ...deps])
 
   return { status }
 }
-
-export type { AutosaveStatus }

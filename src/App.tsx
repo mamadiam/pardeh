@@ -2,7 +2,7 @@ import './App.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
 import type { ScreenplayDoc, Direction, ElementType } from './core/types'
-import { saveToJson } from './core/serialize'
+import { saveToJson, loadFromJson } from './core/serialize'
 import { emptyDoc } from './core/types'
 import { createEditor, tiptapToDoc } from './editor/schema'
 import { loadDoc } from './storage/db'
@@ -26,11 +26,16 @@ export default function App(props: {
   const directionRef = useRef<Direction>('ltr')
   const [direction, setDirection] = useState<Direction>('ltr')
 
-  // load stored doc on first mount
+  // load stored doc on first mount; route through loadFromJson so corrupt or
+  // legacy records are normalized instead of blanking the editor
   useEffect(() => {
     if (doc || props.doc) return
     loadDoc(CURRENT_KEY)
-      .then((stored) => setDoc(stored ?? emptyDoc()))
+      .then((stored) =>
+        setDoc(
+          stored ? loadFromJson(saveToJson(stored)).doc ?? emptyDoc() : emptyDoc(),
+        ),
+      )
       .catch(() => setDoc(emptyDoc()))
   }, [doc, props.doc])
 
@@ -55,11 +60,11 @@ export default function App(props: {
     props.onEditorReady?.(ed)
   }, [doc, editor]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useAutosave(
+  const { status: saveStatus } = useAutosave(
     () =>
       editor
         ? tiptapToDoc(editor.getJSON().content ?? [], doc?.meta ?? emptyDoc().meta, directionRef.current)
-        : emptyDoc(),
+        : null,
     CURRENT_KEY,
     [editor, updates],
   )
@@ -108,6 +113,7 @@ export default function App(props: {
         currentElement={currentElement ?? 'scene'}
         direction={direction}
         onDirection={changeDirection}
+        saveStatus={saveStatus}
       />
     </div>
   )
