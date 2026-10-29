@@ -15,12 +15,7 @@ function docOf(blocks: { type: ScreenplayDoc['blocks'][number]['type']; text: st
 function typesOf(editor: Editor): string[] {
   return (editor.getJSON().content ?? [])
     .filter((n) => n.type === 'block')
-    .map((n) => (n.attrs as { elementType?: string }).elementType)
-}
-
-function cursorToEndOfBlock(editor: Editor, index: number): void {
-  const end = endOfBlockText(editor, index)
-  editor.commands.setTextSelection({ from: end, to: end })
+    .map((n) => (n.attrs as { elementType?: string }).elementType ?? '')
 }
 
 /** absolute text position at end of block `index` in a flat block-only doc */

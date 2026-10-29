@@ -5,6 +5,8 @@ import { useState } from 'react'
 import App from '../src/App'
 import { wordCount } from '../src/ui/status'
 
+import { emptyDoc } from '../src/core/types'
+
 afterEach(cleanup)
 
 function AppWithEditorCapture(
@@ -12,7 +14,7 @@ function AppWithEditorCapture(
 ): React.JSX.Element {
   const [editor, setEditor] = useState<Editor | null>(null)
   if (editor) props.onReady(editor) // eslint-disable-line react-hooks/rules-of-hooks
-  return <App onEditorReady={setEditor} />
+  return <App doc={emptyDoc()} onEditorReady={setEditor} />
 }
 
 function renderApp(): {

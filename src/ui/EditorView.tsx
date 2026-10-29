@@ -9,7 +9,7 @@ export default function EditorView(props: {
   doc: ScreenplayDoc
   onEditorReady?: (editor: Editor) => void
 }) {
-  const { editor, doc, onEditorReady } = props
+  const { editor, onEditorReady } = props
   useEffect(() => {
     onEditorReady?.(editor)
   }, [editor, onEditorReady])

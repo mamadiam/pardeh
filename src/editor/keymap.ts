@@ -1,6 +1,7 @@
 import { Extension } from '@tiptap/core'
 import type { CommandProps } from '@tiptap/core'
 import { TextSelection } from '@tiptap/pm/state'
+import type { Node as PMNode } from '@tiptap/pm/model'
 import type { ElementType } from '../core/types'
 import { cycleElement as cycle, hotkeyElement, nextOnEnter } from '../core/flow'
 
@@ -24,9 +25,7 @@ function currentBlockOf({ state }: CommandProps) {
     block,
     elementType: block.attrs.elementType as ElementType,
     textBefore:
-      $from.parent.type === state.schema.nodes.block
-        ? $from.parent.textBetween(0, $from.parentOffset) ?? ''
-        : $from.textBetween(0, $from.parentOffset) ?? '',
+      ($from.parent as PMNode).textBetween(0, $from.parentOffset) ?? '',
   }
 }
 
@@ -40,7 +39,8 @@ export const SmartKeys = Extension.create({
         ({ state, tr, dispatch }) => {
           if (!dispatch) return true
           const { $head } = state.selection
-          const textBefore = $head.parent.textBetween(0, $head.parentOffset) ?? ''
+          const textBefore =
+          ($head.parent as PMNode).textBetween(0, $head.parentOffset) ?? ''
           const next = nextOnEnter(
             ($head.parent.attrs.elementType ?? 'action') as ElementType,
             textBefore,
@@ -60,7 +60,7 @@ export const SmartKeys = Extension.create({
         (step) =>
         (props) => {
           if (!props.dispatch) return true
-          const { block, elementType } = currentBlockOf(props)
+          const { elementType } = currentBlockOf(props)
           props.tr.setNodeMarkup(blockStartOf(props), undefined, {
             elementType: cycle(elementType, step),
           })
@@ -107,5 +107,3 @@ export const SmartKeys = Extension.create({
     }
   },
 })
-
-export { ELEMENT_ORDER }

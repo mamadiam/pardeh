@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { loadDoc, saveDoc } from '../src/storage/db'
 import { useAutosave } from '../src/storage/autosave'
 import { emptyDoc, type ScreenplayDoc } from '../src/core/types'

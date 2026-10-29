@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+// vitest config is typed against defineConfig from vitest/config
+import { defineConfig as defineTestConfig, mergeConfig } from 'vitest/config'
 
-export default defineConfig({
-  plugins: [react()],
+const testConfig = defineTestConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
@@ -10,3 +11,10 @@ export default defineConfig({
     css: true,
   },
 })
+
+export default mergeConfig(
+  defineConfig({
+    plugins: [react()],
+  }),
+  testConfig,
+)

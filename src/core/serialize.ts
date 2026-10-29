@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, type ScreenplayBlock, type ScreenplayDoc, emptyDoc } from './types'
+import { type ScreenplayBlock, type ScreenplayDoc, emptyDoc } from './types'
 
 const VALID_TYPES = new Set<string>([
   'scene',
