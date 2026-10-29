@@ -1,0 +1,22 @@
+export default `.sf-paper {
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+  font-size: 12pt;
+  line-height: 1.2;
+}
+
+.sf-block {
+  white-space: pre-wrap;
+}
+
+.sf-scene,
+.sf-action,
+.sf-character,
+.sf-transition {
+  margin-block-start: 0.8em;
+}
+
+.sf-parenthetical,
+.sf-dialogue {
+  margin-block-start: 0;
+}
+`
