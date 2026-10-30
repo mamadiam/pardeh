@@ -16,7 +16,7 @@ const doc: ScreenplayDoc = {
 describe('buildBreakdownPrompt', () => {
   it('sends every block with its element label', async () => {
     const { buildBreakdownPrompt } = await import('../src/ai/breakdown')
-    const prompt = buildBreakdownPrompt(doc)
+    const prompt = buildBreakdownPrompt(doc).prompt
     expect(prompt).toContain('INT. HOUSE - NIGHT')
     expect(prompt).toContain('SARA')
     expect(prompt).toContain('Who is there?')

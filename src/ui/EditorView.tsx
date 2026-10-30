@@ -6,13 +6,11 @@ import { useCallback, useEffect, useState } from 'react'
 import type { RewriteKind } from '../ai/rewrite'
 import { rewriteSelection } from '../ai/rewrite'
 import { AiError } from '../ai/client'
-import { SelectionMenu } from './SelectionMenu'
-
+import { menuPosition, SelectionMenu } from './SelectionMenu'
 
 interface MenuState {
   rect: { top: number; left: number }
-  from: number
-  to: number
+  range: { from: number; to: number }
 }
 
 export default function EditorView(props: {
@@ -43,7 +41,12 @@ export default function EditorView(props: {
         return
       }
       const rect = sel.getRangeAt(0).getBoundingClientRect()
-      setMenu({ rect: { top: rect.top - 44, left: rect.left }, from: 0, to: 0 })
+      // capture the range NOW — the selection may have changed by click time
+      const pm = editor.state.selection
+      setMenu({
+        rect: menuPosition({ top: rect.top, left: rect.left, width: rect.width, height: rect.height }, window.innerWidth),
+        range: { from: Math.min(pm.from, pm.to), to: Math.max(pm.from, pm.to) },
+      })
     }
     document.addEventListener('selectionchange', onSelectionChange)
     return () => {
@@ -57,7 +60,7 @@ export default function EditorView(props: {
       setPending(true)
       setError(null)
       try {
-        await rewriteSelection(editor, kind, { customInstruction: instruction })
+        await rewriteSelection(editor, kind, { customInstruction: instruction, range: menu.range })
         setMenu(null)
       } catch (e) {
         setError(e instanceof AiError || e instanceof Error ? e.message : 'Something went wrong')

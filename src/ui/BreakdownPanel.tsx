@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiError, chat } from '../ai/client'
 import { loadAiConfig } from '../ai/config'
 import { buildBreakdownPrompt, parseBreakdown } from '../ai/breakdown'
@@ -14,6 +14,17 @@ export default function BreakdownPanel(props: {
   const [result, setResult] = useState<BreakdownResult | null>(null)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [truncNote, setTruncNote] = useState<string | null>(null)
+
+  // all hooks run before any early return (rules of hooks)
+  useEffect(() => {
+    if (!props.open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') props.onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [props])
 
   if (!props.open) return null
 
@@ -26,9 +37,12 @@ export default function BreakdownPanel(props: {
     try {
       const raw = await chat(cfg, [
         { role: 'system', content: 'You are a script analysis assistant. Output ONLY valid JSON.' },
-        { role: 'user', content: buildBreakdownPrompt(props.doc) },
+        { role: 'user', content: buildBreakdownPrompt(props.doc).prompt },
       ])
       setResult(parseBreakdown(raw))
+      setTruncNote(buildBreakdownPrompt(props.doc).truncated
+        ? `Script truncated after ${buildBreakdownPrompt(props.doc).truncated!.kept} of ${buildBreakdownPrompt(props.doc).truncated!.total} blocks.`
+        : null)
       setRunning(false)
     } catch (e) {
       setError(
@@ -102,6 +116,7 @@ export default function BreakdownPanel(props: {
             <button type="button" className="sf-control sf-save" onClick={run}>Run breakdown</button>
           </div>
         )}
+        {truncNote && result && <p className="sf-breakdown-loading">{truncNote}</p>}
       </div>
     </div>
   )

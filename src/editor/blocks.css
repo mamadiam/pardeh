@@ -51,3 +51,9 @@
 .sf-transition {
   margin-inline-start: 55.9mm;
 }
+
+/* the editable fills the page so clicks anywhere focus the editor */
+.sf-paper [role='textbox'] {
+  min-height: 40rem;
+  outline: none;
+}

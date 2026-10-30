@@ -332,3 +332,177 @@ body {
 .sf-breakdown-desc {
   color: var(--muted);
 }
+
+/* ── AI overlays: fixed scrim + centred panels; the menu floats ── */
+.sf-ai-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(19 20 22 / 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.sf-ai-settings {
+  position: relative;
+  width: 26rem;
+  max-width: calc(100vw - 32px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+}
+
+.sf-ai-settings h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sf-ai-settings label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.sf-ai-settings label select,
+.sf-ai-settings label input {
+  height: 36px;
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 14px "IBM Plex Sans", sans-serif;
+  padding: 0 10px;
+}
+
+.sf-ai-settings :is(select, input):focus-visible,
+.sf-toolbar .sf-control:focus-visible,
+.sf-iconbtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.sf-ai-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sf-ai-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  flex-wrap: wrap;
+}
+
+.sf-ai-result.sf-ok {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfae5;
+  color: #04250e;
+  font-size: 12px;
+  flex: none;
+}
+
+.sf-ai-result.sf-err {
+  color: #831c1e;
+  background: #ffedea;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.sf-ai-result.sf-testing,
+.sf-ai-result.sf-idle {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sf-ai-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.sf-close {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 6px;
+}
+
+.sf-close:hover {
+  background: var(--active);
+}
+
+/* the selection rewrite menu floats over the paper */
+.sf-selection-menu {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+}
+
+.sf-selection-menu button {
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: 500 13px "IBM Plex Sans", sans-serif;
+  cursor: pointer;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.sf-selection-menu button:hover {
+  background: var(--active);
+}
+
+.sf-selection-menu input {
+  height: 30px;
+  width: 180px;
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 13px "IBM Plex Sans", sans-serif;
+  padding: 0 8px;
+}
+
+.sf-selection-menu .sf-rewrite-pending {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 0 10px;
+}
+
+.sf-selection-menu .sf-rewrite-error {
+  font-size: 12px;
+  color: #831c1e;
+  background: #ffedea;
+  border-radius: 999px;
+  padding: 2px 8px;
+}

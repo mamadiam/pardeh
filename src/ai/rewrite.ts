@@ -33,10 +33,12 @@ export const REWRITE_SYSTEM = 'You are a screenwriting assistant. Output ONLY th
 export async function rewriteSelection(
   editor: Editor,
   kind: RewriteKind | string,
-  opts: { customInstruction?: string } = {},
+  opts: { customInstruction?: string; range?: { from: number; to: number } } = {},
 ): Promise<boolean> {
-  const { from, to, empty } = editor.state.selection
-  if (empty) return false
+  // the range captured when the menu opened — not the live selection, which
+  // may have moved while the user interacted with the menu
+  const { from, to } = opts.range ?? editor.state.selection
+  if (from === to) return false
   const cfg = loadAiConfig()
   if (!cfg.model) throw new AiError('no-config', 'No AI provider is configured')
   const block = blockTextAt(editor, from)

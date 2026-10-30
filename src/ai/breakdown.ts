@@ -9,18 +9,31 @@ export interface BreakdownResult {
   scenes: { title: string; summary: string }[]
 }
 
-export function buildBreakdownPrompt(doc: ScreenplayDoc): string {
-  const body = doc.blocks
-    .map((b) => `${ELEMENT_LABEL[b.type]}: ${b.text}`)
-    .join('\n')
-    .slice(0, 24_000)
-  return [
+export function buildBreakdownPrompt(doc: ScreenplayDoc): { prompt: string; truncated: { kept: number; total: number } | null } {
+  const LIMIT = 24_000
+  const total = doc.blocks.length
+  let kept = 0
+  let size = 0
+  const lines: string[] = []
+  for (const b of doc.blocks) {
+    const line = `${ELEMENT_LABEL[b.type]}: ${b.text}`
+    if (size + line.length > LIMIT && kept > 0) break
+    lines.push(line)
+    size += line.length
+    kept += 1
+  }
+  const truncated = kept < total ? { kept, total } : null
+  if (truncated) {
+    lines.push(`(script truncated after ${kept} of ${total} blocks)`)
+  }
+  const prompt = [
     'Break down this screenplay. Respond with ONLY a JSON object, no commentary, of this exact shape:',
     '{"logline": string, "characters": [{"name": string, "description": string}], "locations": [string], "scenes": [{"title": string, "summary": string}]}',
     'Every string must use the screenplay\'s own language.',
     '---',
-    body,
+    lines.join('\n'),
   ].join('\n')
+  return { prompt, truncated }
 }
 
 function isStringArray(v: unknown): v is string[] {

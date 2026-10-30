@@ -77,8 +77,9 @@ export async function listModels(cfg: AiConfig): Promise<string[]> {
     const ids = (data.data ?? []).map((m) => m.id).filter((id): id is string => typeof id === 'string')
     return ids
   } catch (e) {
-    if (e instanceof AiError) throw e
-    // ollama's native catalogue at /api/tags
+    // ollama's native catalogue at /api/tags — every failure path falls back
+    // except a non-ollama provider's own structured answer
+    if (e instanceof AiError && cfg.provider !== 'ollama') throw e
     try {
       const tagsUrl = `${cfg.endpoint.replace(/\/v\d+$/, '')}/api/tags`
       const res = await fetch(tagsUrl, { signal: AbortSignal.timeout(15_000) })
