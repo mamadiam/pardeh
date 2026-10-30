@@ -9,6 +9,7 @@ const testConfig = defineTestConfig({
     setupFiles: ['./tests/setup.ts'],
     passWithNoTests: true,
     css: true,
+    exclude: ['**/node_modules/**', '**/.worktrees/**', '**/.superpowers/**', '**/dist/**'],
   },
 })
 
