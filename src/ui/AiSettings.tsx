@@ -123,13 +123,18 @@ export default function AiSettings(props: { open: boolean; onClose: () => void }
         )}
         {info.needsKey && (
           <label>
-            API key
+            {cfg.provider === 'opencode' ? 'Service password' : 'API key'}
+            {cfg.provider === 'opencode' && (
+              <span className="sf-ai-note">
+                ← run `opencode service status` (or read ~/.config/opencode/service.json) and paste the password once.
+              </span>
+            )}
             <input
-              aria-label="api key"
+              aria-label={cfg.provider === 'opencode' ? 'service password' : 'api key'}
               type="password"
               value={cfg.apiKey ?? ''}
               onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
-              placeholder="sk-…"
+              placeholder={cfg.provider === 'opencode' ? '8chars-16chars-16chars…' : 'sk-…'}
             />
           </label>
         )}

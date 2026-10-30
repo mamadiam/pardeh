@@ -19,12 +19,13 @@ function withStorage<T>(fn: () => T): T {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('PROVIDERS registry', () => {
-  it('offers ollama, lmstudio, openai, openrouter, custom', () => {
+  it('offers ollama, lmstudio, openai, openrouter, opencode, custom', () => {
     expect(PROVIDERS.map((p) => p.id).sort()).toEqual([
       'custom',
       'lmstudio',
       'ollama',
       'openai',
+      'opencode',
       'openrouter',
     ])
   })
