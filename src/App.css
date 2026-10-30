@@ -333,6 +333,48 @@ body {
   color: var(--muted);
 }
 
+/* generation panel additions */
+.sf-ai-settings.sf-generate {
+  width: 30rem;
+}
+
+.sf-ai-settings.sf-generate textarea {
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 14px/1.5 "IBM Plex Sans", sans-serif;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.sf-ai-settings.sf-generate textarea:focus-visible,
+.sf-ai-settings.sf-generate input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.sf-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.sf-generate-result {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.sf-generate-title {
+  margin: 0;
+  font: 600 16px "IBM Plex Sans", sans-serif;
+  color: var(--text);
+}
+
 /* floating menus: project switcher + title context menu */
 .sf-floating-menu {
   position: fixed;

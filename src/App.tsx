@@ -1,7 +1,7 @@
 import './App.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
-import type { ScreenplayDoc, Direction, ElementType } from './core/types'
+import type { ScreenplayDoc, Direction, ElementType, ScreenplayBlock } from './core/types'
 import { saveToJson, loadFromJson } from './core/serialize'
 import { emptyDoc } from './core/types'
 import { createEditor, tiptapToDoc } from './editor/schema'
@@ -18,6 +18,7 @@ import {
 import { useAutosave } from './storage/autosave'
 import AiSettings from './ui/AiSettings'
 import BreakdownPanel from './ui/BreakdownPanel'
+import GeneratePanel from './ui/GeneratePanel'
 import { FloatingMenu, type MenuItem } from './ui/FloatingMenu'
 import Toolbar from './ui/Toolbar'
 import StatusBar from './ui/StatusBar'
@@ -223,6 +224,7 @@ export default function App(props: {
 
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false)
   const [breakdownOpen, setBreakdownOpen] = useState(false)
+  const [generateOpen, setGenerateOpen] = useState(false)
   const closeAiSettings = useCallback(() => {
     setAiSettingsOpen(false)
   }, [])
@@ -230,6 +232,36 @@ export default function App(props: {
     setBreakdownOpen(false)
     setAiSettingsOpen(true)
   }, [])
+
+  // a generated chapter becomes its own project and takes over the editor
+  const createGenerated = useCallback(
+    (generated: ScreenplayDoc) => {
+      flushEditor()
+      const id = `p_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+      void saveDoc(id, generated)
+      setEditor(null)
+      setDoc(generated)
+      setActiveId(id)
+      updateIndex((idx) => addProject(setActive(idx, id), id, generated.meta.title))
+      setGenerateOpen(false)
+    },
+    [flushEditor, updateIndex],
+  )
+
+  const appendGenerated = useCallback(
+    (extra: ScreenplayBlock[]) => {
+      if (!doc) return
+      const snapshot = editor
+        ? tiptapToDoc(editor.getJSON().content ?? [], doc.meta, directionRef.current)
+        : doc
+      const merged = { ...snapshot, blocks: [...snapshot.blocks, ...extra] }
+      setDoc(merged)
+      void saveDoc(activeId, merged)
+      setEditor(null)
+      setGenerateOpen(false)
+    },
+    [editor, doc, activeId],
+  )
 
   const onSave = useCallback(() => {
     if (!editor) return
@@ -308,6 +340,7 @@ export default function App(props: {
           onFocus={() => setFocus((f) => !f)}
           focus={focus}
           onBreakdown={() => setBreakdownOpen(true)}
+          onGenerate={() => setGenerateOpen(true)}
         />
         <span className="sf-spacer" />
         <StatusBar
@@ -325,6 +358,13 @@ export default function App(props: {
         <EditorView editor={editor} doc={doc} onEditorReady={props.onEditorReady} />
       </main>
       <AiSettings open={aiSettingsOpen} onClose={closeAiSettings} />
+      <GeneratePanel
+        open={generateOpen}
+        onClose={() => setGenerateOpen(false)}
+        doc={doc}
+        onCreated={createGenerated}
+        onAppend={appendGenerated}
+      />
       <BreakdownPanel
         open={breakdownOpen}
         onClose={() => setBreakdownOpen(false)}

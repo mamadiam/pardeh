@@ -9,6 +9,7 @@ export default function Toolbar(props: {
   onFocus: () => void
   focus: boolean
   onBreakdown?: () => void
+  onGenerate?: () => void
 }) {
   const { editor, currentElement, onSave, onFocus, focus } = props
   return (
@@ -27,6 +28,11 @@ export default function Toolbar(props: {
           </option>
         ))}
       </select>
+      {props.onGenerate && (
+        <button type="button" className="sf-control" onClick={props.onGenerate}>
+          Generate
+        </button>
+      )}
       {props.onBreakdown && (
         <button type="button" className="sf-control" onClick={props.onBreakdown}>
           Breakdown
