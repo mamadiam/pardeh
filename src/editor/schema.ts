@@ -1,5 +1,6 @@
 import { Editor, Node, mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
+import Placeholder from '@tiptap/extension-placeholder'
 import type { JSONContent } from '@tiptap/core'
 import {
   type Direction,
@@ -81,7 +82,7 @@ export function tiptapToDoc(
 export function createEditor(doc: ScreenplayDoc): Editor {
   return new Editor({
     element: document.createElement('div'),
-    extensions: [StarterKit.configure({ blockquote: false, bulletList: false, codeBlock: false, heading: false, horizontalRule: false, listItem: false, orderedList: false, paragraph: false }), BlockNode, SmartKeys],
+    extensions: [StarterKit.configure({ blockquote: false, bulletList: false, codeBlock: false, heading: false, horizontalRule: false, listItem: false, orderedList: false, paragraph: false }), BlockNode, SmartKeys, Placeholder.configure({ placeholder: 'Start writing — Ctrl/Cmd+1 picks the element type' })],
     // TipTap 2.27 turns arrays into Fragments (crashes in EditorState.create):
     // always hand it a complete doc object
     content: { type: 'doc', content: docToTiptapContent(doc) },

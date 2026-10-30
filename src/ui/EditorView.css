@@ -1,14 +1,12 @@
+/* The paper itself: Courier at screenplay scale. Indents come from
+   blocks.css (filmnevis's mm table) — this file only sets the page look. */
 .sf-editor-host [role='textbox'] {
   min-height: 40rem;
   outline: none;
+  font-size: 12pt;
+  line-height: 1.7;
 }
 
-.sf-editor-host {
-  max-width: 46rem;
-  margin: 0 auto;
-  background: #fffef8;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 2.5rem 3rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+.sf-editor-host .sf-block {
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace; // taste-skill-ignore: Courier is the screenplay's set face, not UI chrome
 }

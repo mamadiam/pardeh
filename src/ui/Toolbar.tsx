@@ -1,7 +1,6 @@
 import type { Editor } from '@tiptap/core'
-import { ELEMENT_LABEL } from '../core/flow'
+import { ELEMENT_LABEL, ELEMENT_ORDER } from '../core/flow'
 import type { ElementType } from '../core/types'
-import { ELEMENT_ORDER } from '../core/flow'
 
 export default function Toolbar(props: {
   editor: Editor
@@ -14,6 +13,7 @@ export default function Toolbar(props: {
   return (
     <div className="sf-toolbar">
       <select
+        className="sf-control sf-element-select"
         aria-label="element type"
         value={currentElement}
         onChange={(e) =>
@@ -26,11 +26,11 @@ export default function Toolbar(props: {
           </option>
         ))}
       </select>
-      <button type="button" onClick={onSave}>
-        Save
-      </button>
-      <button type="button" className="sf-toggle-focus" onClick={onFocus}>
+      <button type="button" className="sf-control sf-toggle-focus" onClick={onFocus}>
         {focus ? 'Exit focus' : 'Focus'}
+      </button>
+      <button type="button" className="sf-control sf-save" onClick={onSave}>
+        Save
       </button>
     </div>
   )

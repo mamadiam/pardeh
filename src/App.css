@@ -1,24 +1,257 @@
+/* ScreenForge — Framed sheet (dealt app style, see .taste-skill)
+   Screen's question: "can I just keep writing?" — the paper is the screen. */
+
+/* ── Tokens ─────────────────────────────────────────────────── */
 .sf-app {
-  font-family: system-ui, sans-serif;
-  max-width: 60rem;
-  margin: 0 auto;
-  padding: 1rem;
+  /* light (framed sheet, dealt) */
+  --ground: #f5f5f4;   /* stone — low-chroma, not cream */
+  --surface: #ffffff;
+  --raised: #efefed;
+  --active: #e8e8e6;
+  --border: #e6e6e4;
+  --rule: #f0f0ee;
+  --control: #cdccc7;
+  --accent: #1b6c80;
+  --text: #131416;
+  --muted: #5d5b57;
+  --primary: #1d1c1a;
 }
 
-.sf-toolbar,
-.sf-statusbar {
+.sf-app[data-theme='dark'] {
+  /* true neutral darks; colour only on data (app-screens §9.3) */
+  --ground: #0d0d0c;
+  --surface: #171716;      /* the dark paper */
+  --raised: #090908;
+  --active: #232320;
+  --border: #262625;
+  --rule: #1a1a19;
+  --control: #444341;
+  --accent: #5cb3c9;
+  --text: #f2f2ef;
+  --muted: #a5a29c;
+  --primary: #f2f2ef;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+.sf-app {
+  font-family: "IBM Plex Sans", Inter, system-ui, sans-serif;
+  color: var(--text);
+  background: var(--ground);
+  min-height: 100vh;
   display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  padding: 0.5rem 0;
+  flex-direction: column;
 }
 
+/* ── Top bar: 44px on frame tint, wraps to two rows on narrow ── */
+.sf-topbar {
+  min-height: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 0;
+  column-gap: 12px;
+  padding: 0 16px;
+  background: var(--ground);
+}
+
+.sf-topbar-row,
+.sf-canvas .sf-paper,
+.sf-editor-host {
+  min-height: 0;
+}
+
+@media (max-width: 700px) {
+  .sf-topbar {
+    padding: 6px 16px;
+  }
+
+  .sf-divider,
+  .sf-spacer {
+    display: none;
+  }
+
+  .sf-toolbar {
+    flex: 1 1 100%;
+    border-top: 1px solid var(--rule);
+  }
+
+  .sf-toolbar .sf-control {
+    flex: 1 0 auto;
+  }
+
+  .sf-statusbar {
+    gap: 8px;
+  }
+}
+
+.sf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--text);
+}
+
+.sf-badge svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+}
+
+.sf-doc-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sf-topbar .sf-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  flex: none;
+}
+
+.sf-spacer {
+  flex: 1;
+}
+
+/* toolbar controls live in the top bar */
+.sf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sf-toolbar .sf-control {
+  height: 32px;
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: 500 14px/1 "IBM Plex Sans", sans-serif;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.sf-toolbar .sf-control:hover {
+  background: var(--active);
+}
+
+.sf-toolbar .sf-save {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--ground);
+}
+
+.sf-toolbar .sf-save:hover {
+  filter: brightness(0.92);
+}
+
+.sf-toolbar .sf-element-select {
+  color: var(--text);
+  font-weight: 500;
+  padding-inline-end: 8px;
+}
+
+/* ── Canvas: flat tone step, the white sheet on it ────────────── */
+.sf-canvas {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  background: var(--raised);
+  padding: 24px;
+  border-block: 1px solid var(--border);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* the paper is A4-proportioned when empty, and grows with the script */
+.sf-editor-host.sf-paper {
+  max-width: 46rem;
+  width: 100%;
+  align-self: flex-start;
+  min-height: calc(46rem * 1.414);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 48px;
+}
+
+/* ── Status bar under the sheets ─────────────────────────────── */
+.sf-statusbar {
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sf-statusbar .sf-control {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.sf-iconbtn {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.sf-iconbtn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sf-iconbtn:hover {
+  background: var(--active);
+  color: var(--text);
+}
+
+.sf-status-element {
+  font-weight: 500;
+}
+
+.sf-status-words {
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-save-status {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Focus mode: chrome drops ────────────────────────────────── */
 .sf-focus .sf-toolbar {
+  display: none !important;
+}
+
+.sf-focus .sf-topbar .sf-divider {
   display: none;
 }
 
-.sf-focus .sf-editor-host {
-  border-color: transparent;
-  box-shadow: none;
-  max-width: 46rem;
+.sf-app {
+  display: flex;
+  flex-direction: column;
 }

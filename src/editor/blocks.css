@@ -2,15 +2,23 @@
    (src/core/flow.ts + src/editor/blockStyle.ts). shortcut: table is
    duplicated here for CSS; unify into generated styles when real
    pagination (Phase 3) lands. */
-.sf-paper {
-  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
-  font-size: 12pt;
-  line-height: 1.4;
+.sf-paper .sf-block {
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace; // taste-skill-ignore: Courier is the screenplay's set face, not UI chrome
 }
 
-.sf-block {
-  white-space: pre-wrap;
+/* the empty page carries the first action (taste-skill first-run rule) */
+.sf-paper p.is-empty::before,
+.sf-paper .is-empty::before,
+.sf-paper p.is-editor-empty::before {
+  content: attr(data-placeholder);
+  float: inline-start;
+  height: 0;
+  color: var(--control, #cdccc7);
+  pointer-events: none;
+  /* taste-skill-ignore: Courier is the screenplay's set face, not UI chrome */
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
 }
+
 
 .sf-scene,
 .sf-action,
@@ -26,6 +34,10 @@
 
 .sf-character {
   margin-inline-start: 55.9mm;
+}
+
+.sf-block {
+  white-space: pre-wrap;
 }
 
 .sf-parenthetical {

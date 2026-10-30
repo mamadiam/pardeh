@@ -15,7 +15,7 @@ export default function EditorView(props: {
     onEditorReady?.(editor)
   }, [editor, onEditorReady])
   return (
-    <div className="sf-editor-host sf-paper" data-direction={props.doc.direction}>
+    <div className="sf-editor-host sf-paper" data-direction={props.doc.direction} data-ui="screenplay-paper">
       <EditorContent editor={editor} />
     </div>
   )
