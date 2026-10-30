@@ -5,15 +5,31 @@ import type { ScreenplayDoc, Direction, ElementType } from './core/types'
 import { saveToJson, loadFromJson } from './core/serialize'
 import { emptyDoc } from './core/types'
 import { createEditor, tiptapToDoc } from './editor/schema'
-import { loadDoc } from './storage/db'
+import { deleteDoc, loadDoc, saveDoc } from './storage/db'
+import {
+  addProject,
+  ensureIndex,
+  removeProject,
+  renameProject,
+  setActive,
+  writeIndex,
+  type ProjectIndex,
+} from './storage/projects'
 import { useAutosave } from './storage/autosave'
 import AiSettings from './ui/AiSettings'
 import BreakdownPanel from './ui/BreakdownPanel'
+import { FloatingMenu, type MenuItem } from './ui/FloatingMenu'
 import Toolbar from './ui/Toolbar'
 import StatusBar from './ui/StatusBar'
 import EditorView from './ui/EditorView'
 
 const CURRENT_KEY = 'current'
+
+interface HeaderMenu {
+  x: number
+  y: number
+  kind: 'title' | 'projects'
+}
 
 export default function App(props: {
   doc?: ScreenplayDoc
@@ -21,6 +37,11 @@ export default function App(props: {
 }) {
   const [doc, setDoc] = useState<ScreenplayDoc | null>(props.doc ?? null)
   const [editor, setEditor] = useState<Editor | null>(null)
+  const [activeId, setActiveId] = useState(CURRENT_KEY)
+  const [projects, setProjects] = useState<ProjectIndex | null>(null)
+  const [headerMenu, setHeaderMenu] = useState<HeaderMenu | null>(null)
+  const [renaming, setRenaming] = useState(false)
+  const [draftTitle, setDraftTitle] = useState('')
   const [currentElement, setCurrentElement] = useState<ElementType>()
   const [updates, setUpdates] = useState(0)
   const [focus, setFocus] = useState(false)
@@ -35,18 +56,37 @@ export default function App(props: {
     }
   })
 
-  // load stored doc on first mount; route through loadFromJson so corrupt or
+  // index: migrate-or-read once; the doc itself loads per activeId below
+  useEffect(() => {
+    let alive = true
+    ensureIndex()
+      .then((idx) => {
+        if (!alive) return
+        setProjects(idx)
+        if (idx.activeId && !props.doc) setActiveId(idx.activeId)
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [props.doc])
+
+  // (re)load the stored doc whenever the open project changes; corrupt or
   // legacy records are normalized instead of blanking the editor
   useEffect(() => {
-    if (doc || props.doc) return
-    loadDoc(CURRENT_KEY)
-      .then((stored) =>
-        setDoc(
-          stored ? loadFromJson(saveToJson(stored)).doc ?? emptyDoc() : emptyDoc(),
-        ),
-      )
-      .catch(() => setDoc(emptyDoc()))
-  }, [doc, props.doc])
+    if (props.doc) return
+    let alive = true
+    loadDoc(activeId)
+      .then((stored) => {
+        if (alive) setDoc(stored ? loadFromJson(saveToJson(stored)).doc ?? emptyDoc() : emptyDoc())
+      })
+      .catch(() => {
+        if (alive) setDoc(emptyDoc())
+      })
+    return () => {
+      alive = false
+    }
+  }, [activeId, props.doc])
 
   // create the editor once the doc is known
   useEffect(() => {
@@ -74,9 +114,95 @@ export default function App(props: {
       editor
         ? tiptapToDoc(editor.getJSON().content ?? [], doc?.meta ?? emptyDoc().meta, directionRef.current)
         : null,
-    CURRENT_KEY,
-    [editor, updates],
+    activeId,
+    [editor, updates, activeId],
   )
+
+  const updateIndex = useCallback((fn: (idx: ProjectIndex) => ProjectIndex) => {
+    setProjects((idx) => {
+      if (!idx) return idx
+      const next = fn(idx)
+      writeIndex(next)
+      return next
+    })
+  }, [])
+
+  // flush the live editor into the record the autosave debounce hasn't
+  // reached yet, so switching projects can never lose the last keystrokes
+  const flushEditor = useCallback(() => {
+    if (!editor || !doc) return
+    const snapshot = tiptapToDoc(editor.getJSON().content ?? [], doc.meta, directionRef.current)
+    void saveDoc(activeId, snapshot)
+  }, [editor, doc, activeId])
+
+  const switchProject = useCallback(
+    (id: string) => {
+      if (id === activeId) return
+      flushEditor()
+      setEditor(null)
+      setDoc(null)
+      setActiveId(id)
+      updateIndex((idx) => setActive(idx, id))
+    },
+    [activeId, flushEditor, updateIndex],
+  )
+
+  const newProject = useCallback(() => {
+    const id = `p_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+    flushEditor()
+    const fresh = emptyDoc()
+    void saveDoc(id, fresh)
+    setEditor(null)
+    setDoc(fresh)
+    setActiveId(id)
+    updateIndex((idx) => addProject(setActive(idx, id), id, ''))
+  }, [flushEditor, updateIndex])
+
+  const removeProjectById = useCallback(
+    (id: string) => {
+      void deleteDoc(id)
+      const rest = projects?.projects.filter((p) => p.id !== id) ?? []
+      const nextId = rest[0]?.id
+      setEditor(null)
+      setDoc(null)
+      updateIndex((idx) => {
+        const dropped = removeProject(idx, id)
+        return nextId ? setActive(dropped, nextId) : dropped
+      })
+      if (id === activeId) {
+        if (nextId) {
+          setActiveId(nextId)
+        } else {
+          // last project removed — start a fresh one
+          const nid = `p_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+          const fresh = emptyDoc()
+          void saveDoc(nid, fresh)
+          setActiveId(nid)
+          setProjects((idx) => {
+            const next = addProject({ activeId: nid, projects: idx?.projects ?? [] }, nid, '')
+            writeIndex(next)
+            return next
+          })
+        }
+      }
+    },
+    [projects, activeId, updateIndex],
+  )
+
+  const beginRename = useCallback(() => {
+    setDraftTitle(doc?.meta.title ?? '')
+    setRenaming(true)
+  }, [doc])
+
+  const commitRename = useCallback(() => {
+    setRenaming(false)
+    const title = draftTitle.trim()
+    if (!doc || title === (doc.meta.title || '')) return
+    const next = { ...doc, meta: { ...doc.meta, title } }
+    setDoc(next)
+    void saveDoc(activeId, next)
+    updateIndex((idx) => renameProject(idx, activeId, title))
+  }, [doc, draftTitle, activeId, updateIndex])
 
   const changeDirection = useCallback((dir: Direction) => {
     directionRef.current = dir
@@ -133,15 +259,47 @@ export default function App(props: {
       data-theme={theme}
     >
       <header className="sf-topbar">
-        <span className="sf-badge" aria-hidden="true">
+        <button
+          type="button"
+          className="sf-badge"
+          aria-label="projects"
+          aria-haspopup="menu"
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect()
+            setHeaderMenu({ x: r.left, y: r.bottom + 4, kind: 'projects' })
+          }}
+        >
           {/* the mark: a clapperboard, drawn from the product's object */}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2.5" y="9.5" width="19" height="11.5" rx="1.5" />
             <path d="M3 9.5 4.8 4.6a1 1 0 0 1 1.3-.6l14.2 4.2-.6 1.3" />
             <path d="M8.3 9.3l1.6-4.9M13.9 9.6l1.6-4.9" />
           </svg>
-        </span>
-        <h1 className="sf-doc-title">{doc.meta.title || 'Untitled screenplay'}</h1>
+        </button>
+        {renaming ? (
+          <input
+            className="sf-title-input"
+            aria-label="screenplay title"
+            value={draftTitle}
+            autoFocus
+            onChange={(e) => setDraftTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitRename()
+              if (e.key === 'Escape') setRenaming(false)
+            }}
+            onBlur={commitRename}
+          />
+        ) : (
+          <h1
+            className="sf-doc-title"
+            onContextMenu={(e) => {
+              e.preventDefault()
+              setHeaderMenu({ x: e.clientX, y: e.clientY, kind: 'title' })
+            }}
+          >
+            {doc.meta.title || 'Untitled screenplay'}
+          </h1>
+        )}
         <span className="sf-divider" aria-hidden="true" />
         <Toolbar
           editor={editor}
@@ -173,6 +331,28 @@ export default function App(props: {
         doc={doc}
         onOpenSettings={openBreakdownSettings}
       />
+      {headerMenu && (
+        <FloatingMenu
+          x={headerMenu.x}
+          y={headerMenu.y}
+          onClose={() => setHeaderMenu(null)}
+          items={
+            headerMenu.kind === 'projects'
+              ? [
+                  ...(projects?.projects ?? []).map((p) => ({
+                    label: p.id === activeId ? `✓ ${p.title || 'Untitled screenplay'}` : p.title || 'Untitled screenplay',
+                    onSelect: () => switchProject(p.id),
+                  })),
+                  { label: 'New screenplay', onSelect: newProject },
+                ]
+              : ([
+                  { label: 'Rename', onSelect: beginRename },
+                  { label: 'Export', onSelect: onSave },
+                  { label: 'Remove project', onSelect: () => removeProjectById(activeId), danger: true },
+                ] as MenuItem[])
+          }
+        />
+      )}
     </div>
   )
 }

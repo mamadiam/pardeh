@@ -333,6 +333,60 @@ body {
   color: var(--muted);
 }
 
+/* floating menus: project switcher + title context menu */
+.sf-floating-menu {
+  position: fixed;
+  z-index: 30;
+  display: grid;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+}
+
+.sf-floating-menu button {
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: 500 13px "IBM Plex Sans", sans-serif;
+  cursor: pointer;
+  padding: 0 10px;
+  text-align: start;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sf-floating-menu button:hover {
+  background: var(--active);
+}
+
+.sf-floating-menu .sf-menu-danger {
+  color: #831c1e;
+}
+
+.sf-badge {
+  cursor: pointer;
+}
+
+/* inline rename field for the document title */
+.sf-title-input {
+  font: 600 16px/1.2 "IBM Plex Sans", sans-serif;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 2px 8px;
+  min-width: 12rem;
+}
+
+.sf-doc-title {
+  cursor: context-menu;
+}
+
 /* ── AI overlays: fixed scrim + centred panels; the menu floats ── */
 .sf-ai-overlay {
   position: fixed;

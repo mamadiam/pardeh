@@ -38,6 +38,35 @@ export async function saveDoc(id: string, doc: ScreenplayDoc): Promise<void> {
   }
 }
 
+export async function deleteDoc(id: string): Promise<void> {
+  const db = await openDb()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite')
+      tx.objectStore(STORE).delete(id)
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error ?? new Error('delete failed'))
+      tx.onabort = () => reject(tx.error ?? new Error('delete aborted'))
+    })
+  } finally {
+    db.close()
+  }
+}
+
+export async function listDocIds(): Promise<string[]> {
+  const db = await openDb()
+  try {
+    return await new Promise<string[]>((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly')
+      const req = tx.objectStore(STORE).getAllKeys()
+      req.onsuccess = () => resolve(req.result.filter((k): k is string => typeof k === 'string'))
+      req.onerror = () => reject(req.error ?? new Error('list failed'))
+    })
+  } finally {
+    db.close()
+  }
+}
+
 export async function loadDoc(id: string): Promise<ScreenplayDoc | null> {
   const db = await openDb()
   try {
