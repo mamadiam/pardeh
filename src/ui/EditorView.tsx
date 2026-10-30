@@ -8,6 +8,7 @@ import { rewriteSelection } from '../ai/rewrite'
 import { AiError } from '../ai/client'
 import { SelectionMenu } from './SelectionMenu'
 
+
 interface MenuState {
   rect: { top: number; left: number }
   from: number

@@ -255,3 +255,80 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* ── Breakdown panel: a wide floating sheet ───────────────────── */
+.sf-breakdown {
+  position: relative;
+  width: 30rem;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+}
+
+.sf-breakdown-state {
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.sf-breakdown-kicker {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.sf-breakdown-loading {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.sf-breakdown-body {
+  display: grid;
+  gap: 16px;
+}
+
+.sf-breakdown-logline {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sf-breakdown-body h3 {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.sf-breakdown-body ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.sf-breakdown-body li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.sf-breakdown-body li strong {
+  font-weight: 600;
+}
+
+.sf-breakdown-desc {
+  color: var(--muted);
+}

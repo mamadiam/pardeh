@@ -7,6 +7,8 @@ import { emptyDoc } from './core/types'
 import { createEditor, tiptapToDoc } from './editor/schema'
 import { loadDoc } from './storage/db'
 import { useAutosave } from './storage/autosave'
+import AiSettings from './ui/AiSettings'
+import BreakdownPanel from './ui/BreakdownPanel'
 import Toolbar from './ui/Toolbar'
 import StatusBar from './ui/StatusBar'
 import EditorView from './ui/EditorView'
@@ -93,6 +95,16 @@ export default function App(props: {
     })
   }, [])
 
+  const [aiSettingsOpen, setAiSettingsOpen] = useState(false)
+  const [breakdownOpen, setBreakdownOpen] = useState(false)
+  const closeAiSettings = useCallback(() => {
+    setAiSettingsOpen(false)
+  }, [])
+  const openBreakdownSettings = useCallback(() => {
+    setBreakdownOpen(false)
+    setAiSettingsOpen(true)
+  }, [])
+
   const onSave = useCallback(() => {
     if (!editor) return
     const screenplay = tiptapToDoc(
@@ -137,6 +149,7 @@ export default function App(props: {
           onSave={onSave}
           onFocus={() => setFocus((f) => !f)}
           focus={focus}
+          onBreakdown={() => setBreakdownOpen(true)}
         />
         <span className="sf-spacer" />
         <StatusBar
@@ -147,11 +160,19 @@ export default function App(props: {
           saveStatus={saveStatus}
           theme={theme}
           onTheme={toggleTheme}
+          onOpenAiSettings={() => setAiSettingsOpen(true)}
         />
       </header>
       <main className="sf-canvas">
         <EditorView editor={editor} doc={doc} onEditorReady={props.onEditorReady} />
       </main>
+      <AiSettings open={aiSettingsOpen} onClose={closeAiSettings} />
+      <BreakdownPanel
+        open={breakdownOpen}
+        onClose={() => setBreakdownOpen(false)}
+        doc={doc}
+        onOpenSettings={openBreakdownSettings}
+      />
     </div>
   )
 }

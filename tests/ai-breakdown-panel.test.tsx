@@ -1,14 +1,11 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import React from 'react'
 import { emptyDoc } from '../src/core/types'
 
 let store: Map<string, string>
-let fetchCalls: unknown[]
 
 beforeEach(() => {
   store = new Map()
-  fetchCalls = []
   vi.stubGlobal('localStorage', {
     getItem: (k: string) => store.get(k) ?? null,
     setItem: (k: string, v: string) => void store.set(k, v),

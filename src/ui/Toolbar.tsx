@@ -8,6 +8,7 @@ export default function Toolbar(props: {
   onSave: () => void
   onFocus: () => void
   focus: boolean
+  onBreakdown?: () => void
 }) {
   const { editor, currentElement, onSave, onFocus, focus } = props
   return (
@@ -26,6 +27,11 @@ export default function Toolbar(props: {
           </option>
         ))}
       </select>
+      {props.onBreakdown && (
+        <button type="button" className="sf-control" onClick={props.onBreakdown}>
+          Breakdown
+        </button>
+      )}
       <button type="button" className="sf-control sf-toggle-focus" onClick={onFocus}>
         {focus ? 'Exit focus' : 'Focus'}
       </button>
