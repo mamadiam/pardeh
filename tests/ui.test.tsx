@@ -37,10 +37,10 @@ describe('direction toggle', () => {
   it('toggles dir rtl/ltr on the app container', () => {
     const { app } = renderApp()
     expect(app.getAttribute('dir')).toBe('ltr')
-    fireEvent.click(screen.getByRole('button', { name: /rtl/i }))
+    fireEvent.click(screen.getByRole('button', { name: /writing direction/i }))
     expect(app.getAttribute('dir')).toBe('rtl')
     expect(app.getAttribute('data-direction')).toBe('rtl')
-    fireEvent.click(screen.getByRole('button', { name: /ltr/i }))
+    fireEvent.click(screen.getByRole('button', { name: /writing direction/i }))
     expect(app.getAttribute('dir')).toBe('ltr')
   })
 })

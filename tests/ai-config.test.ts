@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PROVIDERS } from '../src/ai/types'
+import type { AiConfig } from '../src/ai/types'
 
 function withStorage<T>(fn: () => T): T {
   const store = new Map<string, string>()
@@ -61,7 +62,7 @@ describe('ai config storage', () => {
   it('defaults to ollama and falls back on unknown provider id', async () => {
     const { loadAiConfig, saveAiConfig } = await import('../src/ai/config')
     withStorage(() => {
-      saveAiConfig({ provider: 'warp-drive' as never })
+      saveAiConfig({ provider: 'warp-drive' } as unknown as AiConfig)
       const cfg = loadAiConfig()
       expect(cfg.provider).toBe('ollama')
       expect(cfg.endpoint).toBe('http://localhost:11434/v1')

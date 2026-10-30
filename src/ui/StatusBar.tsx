@@ -41,15 +41,16 @@ export default function StatusBar(props: {
 
   return (
     <div className="sf-statusbar">
-      <span className="sf-status-element">
-        {props.saveStatus === 'error' ? 'unsaved — storage error · ' : ''}
+      <span className="sf-status-element">{ELEMENT_LABEL[currentElement]}</span>
+      <span className="sf-save-status" data-testid="save-status">
+        {props.saveStatus === 'error' ? 'unsaved — storage error' : ''}
       </span>
-      <span className="sf-save-status" data-testid="save-status" />
       <span className="sf-status-words">{words} words</span>
       <span className="sf-divider" aria-hidden="true" />
       <button
         type="button"
         className="sf-control"
+        aria-label={`switch writing direction to ${direction === 'ltr' ? 'right-to-left' : 'left-to-right'}`}
         onClick={() => onDirection(direction === 'ltr' ? 'rtl' : 'ltr')}
       >
         {direction === 'ltr' ? 'RTL' : 'LTR'}
@@ -63,13 +64,11 @@ export default function StatusBar(props: {
           onClick={props.onTheme}
         >
           {props.theme === 'dark' ? (
-            // sun — click returns to light
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="4" />
               <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
             </svg>
           ) : (
-            // moon — click goes dark
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
             </svg>

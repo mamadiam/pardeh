@@ -1,21 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import React from 'react'
-import { loadAiConfig, saveAiConfig } from '../src/ai/config'
+import { loadAiConfig } from '../src/ai/config'
 
-function withStorage<T>(fn: () => T): T {
-  const store = new Map<string, string>()
-  vi.stubGlobal('localStorage', {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  })
-  try {
-    return fn()
-  } finally {
-    vi.unstubAllGlobals()
-  }
-}
 
 vi.mock('../src/ai/client', () => ({
   AiError: class AiError extends Error {},

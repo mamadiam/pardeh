@@ -11,7 +11,7 @@ export function normalizeAiConfig(raw: unknown): AiConfig {
   const cfg = { ...DEFAULT_AI_CONFIG }
   if (typeof raw !== 'object' || raw === null) return cfg
   const r = raw as Record<string, unknown>
-  const known = new Set(PROVIDERS.map((p) => p.id))
+  const known = new Set<string>(PROVIDERS.map((p) => p.id))
   if (typeof r.provider === 'string' && known.has(r.provider)) {
     cfg.provider = r.provider as AiProviderId
   }
