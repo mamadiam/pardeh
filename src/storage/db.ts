@@ -1,5 +1,6 @@
 import type { ScreenplayDoc } from '../core/types'
 
+// kept from the app's first name (ScreenForge) so scripts already saved in the browser stay
 const DB_NAME = 'screenforge'
 const DB_VERSION = 1
 const STORE = 'scripts'

@@ -127,6 +127,45 @@ const en = {
   'as.insert': 'Insert at cursor',
   'as.again': 'Try again',
   'as.hint': 'Put the cursor where you are stuck, then pick an option.',
+  'toolbar.panel': 'Chat',
+  'panel.label': 'side panel',
+  'panel.chat': 'Chat',
+  'panel.scenes': 'Scenes',
+  'panel.glossary': 'Glossary',
+  'panel.close': 'Close panel',
+  'chat.welcomeTitle': 'Talk to your script',
+  'chat.welcome': 'Ask anything about your story, or start with a command. Nothing goes into the script until you insert it.',
+  'chat.placeholder': 'Message, or type / for commands',
+  'chat.inputLabel': 'chat message',
+  'chat.send': 'Send',
+  'chat.thinking': 'Thinking…',
+  'chat.clear': 'Clear chat',
+  'chat.replaceScene': 'Replace this scene',
+  'chat.writeBeat': 'Write this scene',
+  'chat.inserted': 'Inserted into the script.',
+  'chat.replaced': 'Scene replaced. Ctrl/Cmd+Z undoes it.',
+  'chat.sceneChanged': 'That scene has changed since, so it was not replaced. Use Insert at cursor instead.',
+  'chat.needText': 'Paste the rough text after /format.',
+  'chat.pagecount': 'About {pages} pages, roughly {minutes} minutes on screen. {scenes} scenes, {words} words. This is an estimate until real pages and PDF arrive.',
+  'chat.helpTitle': 'Commands',
+  'chat.wrote': 'Wrote {n} script lines.',
+  'cmd.scene': 'write a scene from your pitch',
+  'cmd.outline': 'a beat outline of the story',
+  'cmd.character': 'develop a character',
+  'cmd.punchup': 'sharpen the scene at the cursor',
+  'cmd.format': 'turn rough text into script lines',
+  'cmd.coverage': "a studio reader's report",
+  'cmd.pagecount': 'pages and running time',
+  'cmd.help': 'list the commands',
+  'scenes.summary': '{scenes} scenes · about {pages} pages · ~{minutes} min',
+  'scenes.empty': 'No scenes yet. Press Ctrl/Cmd+1 to start a scene heading.',
+  'scenes.opening': 'Opening (before the first scene)',
+  'scenes.lines': '{n} lines',
+  'scenes.jump': 'Go to scene {n}',
+  'glossary.title': 'Screenwriting glossary',
+  'glossary.search': 'Search terms',
+  'glossary.close': 'close glossary',
+  'glossary.none': 'No matching term.',
 }
 
 export type StringKey = keyof typeof en
@@ -248,14 +287,57 @@ const fa: Record<StringKey, string> = {
   'as.insert': 'افزودن در جای مکان‌نما',
   'as.again': 'دوباره',
   'as.hint': 'مکان‌نما را جایی بگذارید که گیر کرده‌اید، بعد یکی از گزینه‌ها را انتخاب کنید.',
+  'toolbar.panel': 'گفتگو',
+  'panel.label': 'پنل کناری',
+  'panel.chat': 'گفتگو',
+  'panel.scenes': 'صحنه‌ها',
+  'panel.glossary': 'واژه‌نامه',
+  'panel.close': 'بستن پنل',
+  'chat.welcomeTitle': 'با فیلم‌نامه‌تان گفتگو کنید',
+  'chat.welcome': 'هر سؤالی درباره‌ی داستان دارید بپرسید، یا با یک دستور شروع کنید. تا خودتان اضافه نکنید، چیزی وارد فیلم‌نامه نمی‌شود.',
+  'chat.placeholder': 'پیام بنویسید، یا برای دستورها / بزنید',
+  'chat.inputLabel': 'پیام گفتگو',
+  'chat.send': 'بفرست',
+  'chat.thinking': 'در حال فکر کردن…',
+  'chat.clear': 'پاک کردن گفتگو',
+  'chat.replaceScene': 'جایگزین کردن این صحنه',
+  'chat.writeBeat': 'این صحنه را بنویس',
+  'chat.inserted': 'به فیلم‌نامه اضافه شد.',
+  'chat.replaced': 'صحنه جایگزین شد. با Ctrl/Cmd+Z برمی‌گردد.',
+  'chat.sceneChanged': 'آن صحنه از آن موقع تغییر کرده، پس جایگزین نشد. به‌جایش «افزودن در جای مکان‌نما» را بزنید.',
+  'chat.needText': 'متن خام را بعد از /format بگذارید.',
+  'chat.pagecount': 'حدود {pages} صفحه، تقریباً {minutes} دقیقه روی پرده. {scenes} صحنه، {words} کلمه. این یک تخمین است تا صفحه‌بندی واقعی و PDF اضافه شود.',
+  'chat.helpTitle': 'دستورها',
+  'chat.wrote': '{n} خط فیلم‌نامه نوشته شد.',
+  'cmd.scene': 'از ایده‌ی شما یک صحنه می‌نویسد',
+  'cmd.outline': 'طرح کلی داستان، بیت به بیت',
+  'cmd.character': 'یک شخصیت را می‌پرورد',
+  'cmd.punchup': 'صحنه‌ی جای مکان‌نما را تیزتر می‌کند',
+  'cmd.format': 'متن خام را به خطوط فیلم‌نامه تبدیل می‌کند',
+  'cmd.coverage': 'گزارش ارزیابی مثل یک خواننده‌ی حرفه‌ای',
+  'cmd.pagecount': 'تعداد صفحه و مدت زمان',
+  'cmd.help': 'فهرست دستورها',
+  'scenes.summary': '{scenes} صحنه · حدود {pages} صفحه · ~{minutes} دقیقه',
+  'scenes.empty': 'هنوز صحنه‌ای نیست. برای نوشتن سرصحنه Ctrl/Cmd+1 را بزنید.',
+  'scenes.opening': 'آغاز (پیش از اولین صحنه)',
+  'scenes.lines': '{n} خط',
+  'scenes.jump': 'رفتن به صحنه‌ی {n}',
+  'glossary.title': 'واژه‌نامه‌ی فیلم‌نامه‌نویسی',
+  'glossary.search': 'جستجوی واژه',
+  'glossary.close': 'بستن واژه‌نامه',
+  'glossary.none': 'واژه‌ای پیدا نشد.',
 }
 
 const STRINGS: Record<Lang, Record<StringKey, string>> = { en, fa }
 
-const faDigits = new Intl.NumberFormat('fa-IR', { useGrouping: false })
+const faDigits = new Intl.NumberFormat('fa-IR', { useGrouping: false, maximumFractionDigits: 1 })
 
 function formatValue(lang: Lang, value: string | number): string {
   return typeof value === 'number' && lang === 'fa' ? faDigits.format(value) : String(value)
+}
+
+export function formatNumber(lang: Lang, n: number): string {
+  return formatValue(lang, n)
 }
 
 export function translate(lang: Lang, key: StringKey, vars?: Record<string, string | number>): string {

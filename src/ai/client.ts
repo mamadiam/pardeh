@@ -63,7 +63,7 @@ async function opencodeChat(
   const created = await request(
     cfg,
     '/api/session',
-    { method: 'POST', headers, body: JSON.stringify({ title: 'screenforge', model: { providerID, id: modelID } }) },
+    { method: 'POST', headers, body: JSON.stringify({ title: 'pardeh', model: { providerID, id: modelID } }) },
     timeoutMs,
   )
   if (!created.ok) throw new AiError(`http-${created.status}`, `provider returned HTTP ${created.status}`, created.status)
@@ -143,6 +143,55 @@ async function listAnthropicModels(cfg: AiConfig): Promise<string[]> {
   return (data.data ?? []).map((m) => m.id).filter((id): id is string => typeof id === 'string')
 }
 
+// Gemini's native API (generateContent). The key goes in a header, never the URL.
+function geminiHeaders(cfg: AiConfig): Record<string, string> {
+  if (!cfg.apiKey) throw new AiError('no-config', 'Gemini API key missing')
+  return { 'content-type': 'application/json', 'x-goog-api-key': cfg.apiKey }
+}
+
+async function geminiChat(
+  cfg: AiConfig,
+  messages: ChatMessage[],
+  opts: { timeoutMs?: number },
+): Promise<string> {
+  const headers = geminiHeaders(cfg)
+  const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n')
+  const contents = messages
+    .filter((m) => m.role !== 'system')
+    .map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
+  const model = cfg.model.replace(/^models\//, '')
+  const res = await request(
+    cfg,
+    `/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        ...(system && { systemInstruction: { parts: [{ text: system }] } }),
+        contents,
+        generationConfig: { maxOutputTokens: 8192 },
+      }),
+    },
+    opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+  )
+  if (!res.ok) throw new AiError(`http-${res.status}`, `provider returned HTTP ${res.status}`, res.status)
+  const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] }
+  const text = (data.candidates?.[0]?.content?.parts ?? [])
+    .map((p) => (typeof p.text === 'string' ? p.text : ''))
+    .join('')
+  if (text === '') throw new AiError('bad-response', 'provider returned no content')
+  return text
+}
+
+async function listGeminiModels(cfg: AiConfig): Promise<string[]> {
+  const res = await request(cfg, '/models?pageSize=200', { headers: geminiHeaders(cfg) }, 15_000)
+  if (!res.ok) throw new AiError(`http-${res.status}`, `provider returned HTTP ${res.status}`, res.status)
+  const data = (await res.json()) as { models?: { name?: string; supportedGenerationMethods?: string[] }[] }
+  return (data.models ?? [])
+    .filter((m) => typeof m.name === 'string' && (m.supportedGenerationMethods ?? ['generateContent']).includes('generateContent'))
+    .map((m) => (m.name as string).replace(/^models\//, ''))
+}
+
 export async function chat(
   cfg: AiConfig,
   messages: ChatMessage[],
@@ -151,6 +200,7 @@ export async function chat(
   if (!cfg.model) throw new AiError('no-config', 'no model selected')
   if (cfg.provider === 'opencode') return opencodeChat(cfg, messages, opts)
   if (cfg.provider === 'anthropic') return anthropicChat(cfg, messages, opts)
+  if (cfg.provider === 'gemini') return geminiChat(cfg, messages, opts)
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (cfg.apiKey) headers.Authorization = `Bearer ${cfg.apiKey}`
   const res = await request(
@@ -177,6 +227,7 @@ export interface ProviderError extends AiError {}
 export async function listModels(cfg: AiConfig): Promise<string[]> {
   if (cfg.provider === 'opencode') return listOpencodeModels(cfg)
   if (cfg.provider === 'anthropic') return listAnthropicModels(cfg)
+  if (cfg.provider === 'gemini') return listGeminiModels(cfg)
   try {
     const res = await request(cfg, '/models', {}, 15_000)
     if (res.status === 404 && cfg.provider !== 'ollama') throw new AiError('network', 'no /models')

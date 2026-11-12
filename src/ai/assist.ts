@@ -170,3 +170,34 @@ export function insertBlocksAtCursor(editor: Editor, blocks: ScreenplayBlock[]):
     : $head.after(1)
   editor.chain().focus().insertContentAt(range, nodes).run()
 }
+
+/** Document position where top-level block `index` starts. */
+function blockStart(editor: Editor, index: number): number {
+  let pos = 0
+  const doc = editor.state.doc
+  for (let i = 0; i < index && i < doc.childCount; i++) pos += doc.child(i).nodeSize
+  return pos
+}
+
+/** Replace top-level blocks start..end (inclusive) with new ones, as one undo step. */
+export function replaceBlocks(editor: Editor, start: number, end: number, blocks: ScreenplayBlock[]): void {
+  const doc = editor.state.doc
+  if (blocks.length === 0 || start < 0 || end >= doc.childCount || end < start) return
+  const from = blockStart(editor, start)
+  const to = blockStart(editor, end) + doc.child(end).nodeSize
+  const nodes: JSONContent[] = blocks.map((b) => ({
+    type: 'block',
+    attrs: { elementType: b.type },
+    ...(b.text !== '' && { content: [{ type: 'text', text: b.text }] }),
+  }))
+  editor.chain().focus().insertContentAt({ from, to }, nodes).run()
+}
+
+/** Put the cursor at the start of block `index` and bring it into view. */
+export function jumpToBlock(editor: Editor, index: number): void {
+  if (index < 0 || index >= editor.state.doc.childCount) return
+  const pos = blockStart(editor, index)
+  editor.chain().focus().setTextSelection(pos + 1).run()
+  const dom = editor.view.nodeDOM(pos)
+  if (dom instanceof HTMLElement && typeof dom.scrollIntoView === 'function') dom.scrollIntoView({ block: 'center', behavior: 'smooth' })
+}

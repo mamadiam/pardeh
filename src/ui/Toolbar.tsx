@@ -12,6 +12,8 @@ export default function Toolbar(props: {
   onBreakdown?: () => void
   onGenerate?: () => void
   onAssist?: () => void
+  onTogglePanel?: () => void
+  panelOpen?: boolean
 }) {
   const { editor, currentElement, onSave, onFocus, focus } = props
   const t = useT()
@@ -32,6 +34,16 @@ export default function Toolbar(props: {
           </option>
         ))}
       </select>
+      {props.onTogglePanel && (
+        <button
+          type="button"
+          className={`sf-control sf-toggle-panel${props.panelOpen ? ' sf-on' : ''}`}
+          aria-pressed={props.panelOpen ?? false}
+          onClick={props.onTogglePanel}
+        >
+          {t('toolbar.panel')}
+        </button>
+      )}
       {props.onAssist && (
         <button type="button" className="sf-control" onClick={props.onAssist}>
           {t('toolbar.assist')}

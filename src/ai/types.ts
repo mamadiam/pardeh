@@ -1,4 +1,4 @@
-export type AiProviderId = 'ollama' | 'lmstudio' | 'openai' | 'anthropic' | 'openrouter' | 'opencode' | 'custom'
+export type AiProviderId = 'ollama' | 'lmstudio' | 'openai' | 'anthropic' | 'gemini' | 'openrouter' | 'opencode' | 'custom'
 
 export interface AiProviderInfo {
   id: AiProviderId
@@ -12,6 +12,7 @@ export const PROVIDERS: AiProviderInfo[] = [
   { id: 'lmstudio', label: 'LM Studio (local)', baseURL: 'http://localhost:1234/v1', needsKey: false },
   { id: 'openai', label: 'OpenAI', baseURL: 'https://api.openai.com/v1', needsKey: true },
   { id: 'anthropic', label: 'Claude (Anthropic)', baseURL: 'https://api.anthropic.com/v1', needsKey: true },
+  { id: 'gemini', label: 'Gemini (Google)', baseURL: 'https://generativelanguage.googleapis.com/v1beta', needsKey: true },
   { id: 'openrouter', label: 'OpenRouter', baseURL: 'https://openrouter.ai/api/v1', needsKey: true },
   { id: 'opencode', label: 'OpenCode (CLI service)', baseURL: 'http://127.0.0.1:49374', needsKey: true },
   { id: 'custom', label: 'Custom (OpenAI-compatible)', baseURL: '', needsKey: false },

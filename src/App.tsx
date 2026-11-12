@@ -21,6 +21,8 @@ import AiSettings from './ui/AiSettings'
 import BreakdownPanel from './ui/BreakdownPanel'
 import GeneratePanel from './ui/GeneratePanel'
 import AssistPanel from './ui/AssistPanel'
+import SidePanel from './ui/SidePanel'
+import GlossaryDialog from './ui/GlossaryDialog'
 import { FloatingMenu, type MenuItem } from './ui/FloatingMenu'
 import Toolbar from './ui/Toolbar'
 import StatusBar from './ui/StatusBar'
@@ -245,6 +247,25 @@ export default function App(props: {
   const [breakdownOpen, setBreakdownOpen] = useState(false)
   const [generateOpen, setGenerateOpen] = useState(false)
   const [assistOpen, setAssistOpen] = useState(false)
+  const [glossaryOpen, setGlossaryOpen] = useState(false)
+  // the chat/scenes panel: open by default on wide screens, then as the writer left it
+  const [panelOpen, setPanelOpen] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('sf-panel')
+      if (saved !== null) return saved === 'open'
+    } catch {
+      // storage unavailable
+    }
+    return typeof window !== 'undefined' && window.innerWidth >= 1100
+  })
+  const togglePanel = useCallback((open: boolean) => {
+    setPanelOpen(open)
+    try {
+      localStorage.setItem('sf-panel', open ? 'open' : 'closed')
+    } catch {
+      // the session keeps the choice
+    }
+  }, [])
   // what the panels read: the script as typed now, not as it was when loaded
   const [panelDoc, setPanelDoc] = useState<ScreenplayDoc | null>(null)
   const snapshotDoc = useCallback(
@@ -301,7 +322,7 @@ export default function App(props: {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${screenplay.meta.title || 'screenplay'}.screenforge`
+    a.download = `${screenplay.meta.title || 'screenplay'}.pardeh`
     document.body.appendChild(a)
     a.click()
     a.remove()
@@ -380,6 +401,8 @@ export default function App(props: {
             setGenerateOpen(true)
           }}
           onAssist={() => setAssistOpen(true)}
+          onTogglePanel={() => togglePanel(!panelOpen)}
+          panelOpen={panelOpen}
         />
         <span className="sf-spacer" />
         <StatusBar
@@ -393,9 +416,23 @@ export default function App(props: {
           onOpenAiSettings={() => setAiSettingsOpen(true)}
         />
       </header>
-      <main className="sf-canvas">
-        <EditorView editor={editor} doc={doc} onEditorReady={props.onEditorReady} />
-      </main>
+      <div className="sf-workspace">
+        <main className="sf-canvas">
+          <EditorView editor={editor} doc={doc} onEditorReady={props.onEditorReady} />
+        </main>
+        {panelOpen && !focus && (
+          <SidePanel
+            editor={editor}
+            projectId={activeId}
+            meta={doc.meta}
+            direction={direction}
+            onOpenSettings={() => setAiSettingsOpen(true)}
+            onOpenGlossary={() => setGlossaryOpen(true)}
+            onClose={() => togglePanel(false)}
+          />
+        )}
+      </div>
+      <GlossaryDialog open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
       <AiSettings open={aiSettingsOpen} onClose={closeAiSettings} />
       <AssistPanel
         open={assistOpen}

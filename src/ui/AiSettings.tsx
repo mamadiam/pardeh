@@ -136,7 +136,7 @@ export default function AiSettings(props: { open: boolean; onClose: () => void }
               type="password"
               value={cfg.apiKey ?? ''}
               onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
-              placeholder={cfg.provider === 'opencode' ? '8chars-16chars-16chars…' : cfg.provider === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
+              placeholder={cfg.provider === 'opencode' ? '8chars-16chars-16chars…' : cfg.provider === 'anthropic' ? 'sk-ant-…' : cfg.provider === 'gemini' ? 'AIza…' : 'sk-…'}
             />
           </label>
         )}

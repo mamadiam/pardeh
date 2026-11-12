@@ -1,4 +1,4 @@
-/* ScreenForge — Framed sheet (dealt app style, see .taste-skill)
+/* Pardeh — Framed sheet (dealt app style, see .taste-skill)
    Screen's question: "can I just keep writing?" — the paper is the screen. */
 
 /* ── Tokens ─────────────────────────────────────────────────── */
@@ -48,9 +48,19 @@ body {
   font-family: var(--font);
   color: var(--text);
   background: var(--ground);
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+/* the page and, beside it, the chat/scenes panel; each scrolls on its own */
+.sf-workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: var(--raised);
+  border-block: 1px solid var(--border);
 }
 
 /* ── Top bar: 44px on frame tint, wraps to two rows on narrow ── */
@@ -84,6 +94,8 @@ body {
 
   .sf-toolbar {
     flex: 1 1 100%;
+    flex-wrap: wrap;
+    padding-block: 6px;
     border-top: 1px solid var(--rule);
   }
 
@@ -181,9 +193,7 @@ body {
   flex: 1;
   display: flex;
   justify-content: center;
-  background: var(--raised);
   padding: 24px;
-  border-block: 1px solid var(--border);
   min-height: 0;
   overflow-y: auto;
 }
@@ -731,4 +741,434 @@ body {
 
 .sf-app[lang='fa'] .sf-assist-ideas {
   list-style-type: persian;
+}
+
+.sf-toolbar .sf-control.sf-on {
+  background: var(--active);
+  border-color: var(--text);
+}
+
+/* ── Side panel: chat and scenes, a second sheet beside the page ── */
+.sf-panel {
+  flex: none;
+  width: 380px;
+  margin-block: 24px;
+  margin-inline-end: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.sf-panel-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sf-panel-tabs {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+}
+
+.sf-panel-tab {
+  height: 44px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.sf-panel-tab[aria-selected='true'] {
+  color: var(--text);
+  border-bottom-color: var(--text);
+  font-weight: 600;
+}
+
+.sf-panel-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.sf-panel-body {
+  flex: 1;
+  min-height: 0;
+}
+
+/* chat */
+.sf-chat {
+  display: flex;
+  flex-direction: column;
+}
+
+.sf-chat-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sf-chat-welcome h3 {
+  margin: 4px 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sf-chat-welcome > p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.sf-command-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.sf-command-list button,
+.sf-chat-suggest button {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.sf-command-list button:hover,
+.sf-chat-suggest button:hover {
+  background: var(--active);
+}
+
+.sf-command-list code,
+.sf-chat-suggest code {
+  flex: none;
+  min-width: 6.5em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  direction: ltr;
+  text-align: start;
+  color: var(--accent);
+}
+
+.sf-command-list span,
+.sf-chat-suggest span {
+  color: var(--muted);
+}
+
+.sf-msg {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+  display: grid;
+  gap: 8px;
+}
+
+.sf-msg p,
+.sf-msg ul {
+  margin: 0;
+}
+
+.sf-msg ul {
+  padding-inline-start: 20px;
+}
+
+.sf-msg-user {
+  align-self: flex-end;
+  max-width: 85%;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  white-space: pre-wrap;
+}
+
+.sf-msg-ai {
+  align-self: stretch;
+}
+
+.sf-msg-title {
+  font-weight: 600;
+}
+
+.sf-msg-error p {
+  color: #c4242a;
+}
+
+.sf-app[data-theme='dark'] .sf-msg-error p {
+  color: #ff8a80;
+}
+
+.sf-chat-thinking {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sf-chat-retry {
+  align-self: flex-start;
+}
+
+.sf-chat-compose {
+  flex: none;
+  position: relative;
+  border-top: 1px solid var(--rule);
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.sf-chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.sf-chat-form textarea {
+  resize: none;
+  min-height: 44px;
+  max-height: 160px;
+  border: 1px solid var(--control);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 14px/1.6 var(--font);
+  padding: 8px 10px;
+}
+
+.sf-chat-form textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.sf-chat-suggest {
+  position: absolute;
+  inset-inline: 12px;
+  bottom: calc(100% - 4px);
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+  z-index: 5;
+}
+
+.sf-chat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sf-chip {
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: 500 12px var(--font);
+  padding: 0 10px;
+  cursor: pointer;
+  direction: ltr;
+}
+
+.sf-chip:hover {
+  background: var(--active);
+  color: var(--text);
+}
+
+.sf-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.sf-app[lang='fa'] .sf-chip-quiet {
+  direction: rtl;
+}
+
+.sf-chat-empty {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  font-size: 14px;
+}
+
+.sf-chat-empty p {
+  margin: 0;
+}
+
+/* scenes timeline */
+.sf-scenes {
+  overflow-y: auto;
+  padding: 12px 8px 16px;
+}
+
+.sf-scenes-summary {
+  margin: 0 8px 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sf-scene-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.sf-scene-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  padding: 8px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.sf-scene-item:hover {
+  background: var(--active);
+}
+
+.sf-scene-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.sf-scene-num {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-scene-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sf-scene-heading {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.sf-scene-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* glossary */
+.sf-ai-settings.sf-glossary {
+  width: 34rem;
+  max-height: 86vh;
+  grid-template-rows: auto auto 1fr;
+}
+
+.sf-glossary-search {
+  height: 36px;
+  border: 1px solid var(--control);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 14px var(--font);
+  padding: 0 10px;
+}
+
+.sf-glossary-search:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.sf-glossary-list {
+  margin: 0;
+  overflow-y: auto;
+  min-height: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.sf-glossary-entry {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.sf-glossary-entry dt {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sf-glossary-alt {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.sf-glossary-entry dd {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* narrow screens: the panel slides over the page */
+@media (max-width: 900px) {
+  .sf-panel {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: min(420px, 100vw);
+    margin: 0;
+    border-radius: 0;
+    border-block: 0;
+    border-inline-end: 0;
+    z-index: 25;
+    box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+  }
 }
