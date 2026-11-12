@@ -40,7 +40,7 @@ describe('direction toggle', () => {
     fireEvent.click(screen.getByRole('button', { name: /writing direction/i }))
     expect(app.getAttribute('dir')).toBe('rtl')
     expect(app.getAttribute('data-direction')).toBe('rtl')
-    fireEvent.click(screen.getByRole('button', { name: /writing direction/i }))
+    fireEvent.click(screen.getByRole('button', { name: /جهت نوشتن/ }))
     expect(app.getAttribute('dir')).toBe('ltr')
   })
 })
@@ -78,15 +78,34 @@ describe('toolbar element select', () => {
 })
 
 describe('focus mode', () => {
-  it('toggles sf-focus class on root; CSS hides the toolbar', () => {
+  it('toggles sf-focus class on root; CSS hides the toolbar controls', () => {
     const { app } = renderApp()
     expect(app.classList.contains('sf-focus')).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: /focus/i }))
     expect(app.classList.contains('sf-focus')).toBe(true)
-    // display:none removes it from the accessibility tree — drive the button directly
-    const toolbar = app.querySelector('.sf-toolbar') as HTMLElement
-    expect(getComputedStyle(toolbar).display).toBe('none')
+    const select = app.querySelector('.sf-element-select') as HTMLElement
+    expect(getComputedStyle(select).display).toBe('none')
     fireEvent.click(app.querySelector('.sf-toggle-focus') as HTMLElement)
+    expect(app.classList.contains('sf-focus')).toBe(false)
+  })
+})
+
+describe('focus mode exit', () => {
+  it('keeps the exit button visible while the rest of the toolbar hides', () => {
+    const { app } = renderApp()
+    fireEvent.click(screen.getByRole('button', { name: 'Focus' }))
+    const exit = screen.getByRole('button', { name: 'Exit focus' })
+    expect(getComputedStyle(exit).display).not.toBe('none')
+    expect(getComputedStyle(app.querySelector('.sf-save') as HTMLElement).display).toBe('none')
+    fireEvent.click(exit)
+    expect(app.classList.contains('sf-focus')).toBe(false)
+  })
+
+  it('leaves focus mode on Escape', () => {
+    const { app } = renderApp()
+    fireEvent.click(screen.getByRole('button', { name: 'Focus' }))
+    expect(app.classList.contains('sf-focus')).toBe(true)
+    fireEvent.keyDown(window, { key: 'Escape' })
     expect(app.classList.contains('sf-focus')).toBe(false)
   })
 })

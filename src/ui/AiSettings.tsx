@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { loadAiConfig, saveAiConfig } from '../ai/config'
 import { AiError, chat, listModels } from '../ai/client'
 import { PROVIDERS, type AiConfig } from '../ai/types'
+import { useT } from '../i18n'
 
 export default function AiSettings(props: { open: boolean; onClose: () => void }) {
   const [cfg, setCfg] = useState<AiConfig>(() => loadAiConfig())
@@ -10,6 +11,7 @@ export default function AiSettings(props: { open: boolean; onClose: () => void }
   const [tryCount, setTryCount] = useState(0)
   const [testState, setTestState] = useState<{ kind: 'idle' | 'testing' | 'ok' | 'err'; message?: string }>({ kind: 'idle' })
   const closeRef = useState<HTMLButtonElement | null>()
+  const t = useT()
 
   useEffect(() => {
     if (!props.open) return
@@ -76,12 +78,12 @@ export default function AiSettings(props: { open: boolean; onClose: () => void }
   }
 
   return (
-    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label="AI settings">
+    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label={t('ai.dialog')}>
       <div className="sf-ai-settings">
-        <button ref={closeRef[1] as never} type="button" className="sf-close" aria-label="close settings" onClick={props.onClose}>×</button>
-        <h2>AI</h2>
+        <button ref={closeRef[1] as never} type="button" className="sf-close" aria-label={t('ai.close')} onClick={props.onClose}>×</button>
+        <h2>{t('ai.title')}</h2>
         <label>
-          Provider
+          {t('ai.provider')}
           <select
             value={cfg.provider}
             onChange={(e) => setProvider(e.target.value)}
@@ -92,61 +94,61 @@ export default function AiSettings(props: { open: boolean; onClose: () => void }
           </select>
         </label>
         <label>
-          Endpoint
+          {t('ai.endpoint')}
           <input
-            aria-label="endpoint"
+            aria-label={t('ai.endpointLabel')}
             value={cfg.endpoint}
             onChange={(e) => setCfg((c) => ({ ...c, endpoint: e.target.value }))}
             placeholder="http://localhost:11434/v1"
           />
         </label>
         <label>
-          <span>Model</span>
+          <span>{t('ai.model')}</span>
           {models.length > 0 ? (
-            <select aria-label="model" value={cfg.model} onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}>
-              <option value="">choose a model…</option>
+            <select aria-label={t('ai.modelLabel')} value={cfg.model} onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}>
+              <option value="">{t('ai.chooseModel')}</option>
               {models.map((m) => (
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
           ) : (
             <input
-              aria-label="model"
+              aria-label={t('ai.modelLabel')}
               value={cfg.model}
               onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}
-              placeholder="model id"
+              placeholder={t('ai.modelId')}
             />
           )}
         </label>
         {listFail && (
-          <p className="sf-ai-note">Couldn't list models — type the model id, or refresh once the server is up.</p>
+          <p className="sf-ai-note">{t('ai.listFail')}</p>
         )}
         {info.needsKey && (
           <label>
-            {cfg.provider === 'opencode' ? 'Service password' : 'API key'}
+            {cfg.provider === 'opencode' ? t('ai.servicePassword') : t('ai.apiKey')}
             {cfg.provider === 'opencode' && (
               <span className="sf-ai-note">
-                ← run `opencode service status` (or read ~/.config/opencode/service.json) and paste the password once.
+                {t('ai.opencodeHint')}
               </span>
             )}
             <input
-              aria-label={cfg.provider === 'opencode' ? 'service password' : 'api key'}
+              aria-label={cfg.provider === 'opencode' ? t('ai.servicePasswordLabel') : t('ai.apiKeyLabel')}
               type="password"
               value={cfg.apiKey ?? ''}
               onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
-              placeholder={cfg.provider === 'opencode' ? '8chars-16chars-16chars…' : 'sk-…'}
+              placeholder={cfg.provider === 'opencode' ? '8chars-16chars-16chars…' : cfg.provider === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
             />
           </label>
         )}
         <div className="sf-ai-row">
           <button type="button" className="sf-control" onClick={runTest} disabled={testState.kind === 'testing'}>
-            {testState.kind === 'testing' ? 'Testing…' : 'Test connection'}
+            {testState.kind === 'testing' ? t('ai.testing') : t('ai.test')}
           </button>
           <button type="button" className="sf-control" onClick={() => setTryCount((t) => t + 1)}>
-            Refresh models
+            {t('ai.refresh')}
           </button>
           <span className={`sf-ai-result sf-${testState.kind}`}>
-            {testState.kind === 'ok' ? 'Works' : testState.kind === 'err' ? testState.message : ''}
+            {testState.kind === 'ok' ? t('ai.works') : testState.kind === 'err' ? testState.message : ''}
           </span>
         </div>
         <div className="sf-ai-actions">
@@ -158,7 +160,7 @@ export default function AiSettings(props: { open: boolean; onClose: () => void }
               props.onClose()
             }}
           >
-            Save
+            {t('ai.save')}
           </button>
         </div>
       </div>

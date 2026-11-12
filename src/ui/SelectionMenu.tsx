@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { RewriteKind } from '../ai/rewrite'
+import { useT } from '../i18n'
 
 const ACTIONS: Exclude<RewriteKind, 'custom'>[] = ['Polish', 'Shorten', 'Expand']
 
@@ -21,6 +22,7 @@ export function SelectionMenu(props: {
   onRewrite: (kind: RewriteKind | 'custom', instruction?: string) => void
 }) {
   const [custom, setCustom] = useState('')
+  const t = useT()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -35,18 +37,18 @@ export function SelectionMenu(props: {
       className="sf-selection-menu"
       style={{ top: props.rect.top, left: props.rect.left }}
       role="menu"
-      aria-label="rewrite selection"
+      aria-label={t('rewrite.menu')}
       // keep the DOM selection alive: clicking the menu must not collapse it
       onMouseDown={(e) => e.preventDefault()}
     >
       {props.pending ? (
-        <span className="sf-rewrite-pending">Rewriting…</span>
+        <span className="sf-rewrite-pending">{t('rewrite.pending')}</span>
       ) : props.error ? (
         <>
           <span className="sf-rewrite-error">{props.error}</span>
           {ACTIONS.map((a) => (
             <button key={a} type="button" role="menuitem" onClick={() => props.onRewrite(a)}>
-              {a}
+              {t(`rewrite.${a}`)}
             </button>
           ))}
         </>
@@ -54,7 +56,7 @@ export function SelectionMenu(props: {
         <>
           {ACTIONS.map((a) => (
             <button key={a} type="button" role="menuitem" onClick={() => props.onRewrite(a)}>
-              {a}
+              {t(`rewrite.${a}`)}
             </button>
           ))}
           <form
@@ -64,8 +66,8 @@ export function SelectionMenu(props: {
             }}
           >
             <input
-              aria-label="custom instruction"
-              placeholder="Custom instruction"
+              aria-label={t('rewrite.customLabel')}
+              placeholder={t('rewrite.custom')}
               value={custom}
               onChange={(e) => setCustom(e.target.value)}
             />

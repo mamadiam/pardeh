@@ -4,6 +4,7 @@ import { loadAiConfig } from '../ai/config'
 import { buildBreakdownPrompt, parseBreakdown } from '../ai/breakdown'
 import type { BreakdownResult } from '../ai/breakdown'
 import type { ScreenplayDoc } from '../core/types'
+import { useT } from '../i18n'
 
 export default function BreakdownPanel(props: {
   open: boolean
@@ -15,6 +16,7 @@ export default function BreakdownPanel(props: {
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [truncNote, setTruncNote] = useState<string | null>(null)
+  const t = useT()
 
   // all hooks run before any early return (rules of hooks)
   useEffect(() => {
@@ -41,45 +43,45 @@ export default function BreakdownPanel(props: {
       ])
       setResult(parseBreakdown(raw))
       setTruncNote(buildBreakdownPrompt(props.doc).truncated
-        ? `Script truncated after ${buildBreakdownPrompt(props.doc).truncated!.kept} of ${buildBreakdownPrompt(props.doc).truncated!.total} blocks.`
+        ? t('bd.truncated', { kept: buildBreakdownPrompt(props.doc).truncated!.kept, total: buildBreakdownPrompt(props.doc).truncated!.total })
         : null)
       setRunning(false)
     } catch (e) {
       setError(
         e instanceof AiError
           ? `${e.code}: ${e.message}`
-          : e instanceof Error ? e.message : 'Something went wrong',
+          : e instanceof Error ? e.message : t('editor.genericError'),
       )
       setRunning(false)
     }
   }
 
   return (
-    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label="script breakdown">
+    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label={t('bd.dialog')}>
       <div className="sf-breakdown">
-        <button type="button" className="sf-close" aria-label="close breakdown" onClick={props.onClose}>×</button>
-        <h2 className="sf-doc-title">Breakdown</h2>
+        <button type="button" className="sf-close" aria-label={t('bd.close')} onClick={props.onClose}>×</button>
+        <h2 className="sf-doc-title">{t('bd.title')}</h2>
         {!configured ? (
           <div className="sf-breakdown-state">
-            <p>No provider configured. Open AI settings to pick a model.</p>
-            <button type="button" className="sf-control" onClick={props.onOpenSettings}>Open settings</button>
+            <p>{t('bd.noProvider')}</p>
+            <button type="button" className="sf-control" onClick={props.onOpenSettings}>{t('bd.openSettings')}</button>
           </div>
         ) : running ? (
           <>
-            <p className="sf-breakdown-kicker">Reading the script…</p>
-            <p className="sf-breakdown-loading">Logline, characters, locations and scenes will appear here.</p>
+            <p className="sf-breakdown-kicker">{t('bd.reading')}</p>
+            <p className="sf-breakdown-loading">{t('bd.willAppear')}</p>
           </>
         ) : error ? (
           <div className="sf-breakdown-state">
             <p className="sf-ai-result sf-err">{error}</p>
-            <button type="button" className="sf-control" onClick={run}>Retry</button>
+            <button type="button" className="sf-control" onClick={run}>{t('bd.retry')}</button>
           </div>
         ) : result ? (
           <div className="sf-breakdown-body">
             <p className="sf-breakdown-logline">{result.logline}</p>
             {result.characters.length > 0 && (
               <section>
-                <h3>Characters</h3>
+                <h3>{t('bd.characters')}</h3>
                 <ul>
                   {result.characters.map((c) => (
                     <li key={c.name}>
@@ -92,13 +94,13 @@ export default function BreakdownPanel(props: {
             )}
             {result.locations.length > 0 && (
               <section>
-                <h3>Locations</h3>
+                <h3>{t('bd.locations')}</h3>
                 <p>{result.locations.join(' · ')}</p>
               </section>
             )}
             {result.scenes.length > 0 && (
               <section>
-                <h3>Scenes</h3>
+                <h3>{t('bd.scenes')}</h3>
                 <ul>
                   {result.scenes.map((s) => (
                     <li key={s.title}>
@@ -112,8 +114,8 @@ export default function BreakdownPanel(props: {
           </div>
         ) : (
           <div className="sf-breakdown-state">
-            <p>Sends the whole script to {cfg.model}. A rerun costs another request.</p>
-            <button type="button" className="sf-control sf-save" onClick={run}>Run breakdown</button>
+            <p>{t('bd.intro', { model: cfg.model })}</p>
+            <button type="button" className="sf-control sf-save" onClick={run}>{t('bd.run')}</button>
           </div>
         )}
         {truncNote && result && <p className="sf-breakdown-loading">{truncNote}</p>}

@@ -1,6 +1,7 @@
 import { AiError } from './client'
 import { ELEMENT_LABEL } from '../core/flow'
 import type { ScreenplayDoc } from '../core/types'
+import { writeIn } from './language'
 
 export interface BreakdownResult {
   logline: string
@@ -29,7 +30,7 @@ export function buildBreakdownPrompt(doc: ScreenplayDoc): { prompt: string; trun
   const prompt = [
     'Break down this screenplay. Respond with ONLY a JSON object, no commentary, of this exact shape:',
     '{"logline": string, "characters": [{"name": string, "description": string}], "locations": [string], "scenes": [{"title": string, "summary": string}]}',
-    'Every string must use the screenplay\'s own language.',
+    writeIn(doc.direction),
     '---',
     lines.join('\n'),
   ].join('\n')

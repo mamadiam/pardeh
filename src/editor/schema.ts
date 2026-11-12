@@ -21,6 +21,11 @@ export const BlockNode = Node.create({
   group: 'block',
   content: 'text*',
 
+  // the empty-page hint follows the interface language; App updates it
+  addStorage() {
+    return { placeholder: 'Start writing — Ctrl/Cmd+1 picks the element type' }
+  },
+
   addAttributes() {
     return {
       elementType: {
@@ -82,9 +87,17 @@ export function tiptapToDoc(
 export function createEditor(doc: ScreenplayDoc): Editor {
   return new Editor({
     element: document.createElement('div'),
-    extensions: [StarterKit.configure({ blockquote: false, bulletList: false, codeBlock: false, heading: false, horizontalRule: false, listItem: false, orderedList: false, paragraph: false }), BlockNode, SmartKeys, Placeholder.configure({ placeholder: 'Start writing — Ctrl/Cmd+1 picks the element type' })],
+    extensions: [StarterKit.configure({ blockquote: false, bulletList: false, codeBlock: false, heading: false, horizontalRule: false, listItem: false, orderedList: false, paragraph: false }), BlockNode, SmartKeys, Placeholder.configure({ placeholder: ({ editor }) => (editor.storage.block as { placeholder: string }).placeholder })],
     // TipTap 2.27 turns arrays into Fragments (crashes in EditorState.create):
     // always hand it a complete doc object
     content: { type: 'doc', content: docToTiptapContent(doc) },
   })
+}
+
+// swap the empty-page hint and redraw it without touching the document
+export function setPlaceholder(editor: Editor, text: string): void {
+  const storage = editor.storage.block as { placeholder: string }
+  if (storage.placeholder === text) return
+  storage.placeholder = text
+  if (!editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta('addToHistory', false))
 }

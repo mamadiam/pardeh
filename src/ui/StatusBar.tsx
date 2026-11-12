@@ -1,9 +1,9 @@
 import type { Editor } from '@tiptap/core'
 import { useEffect, useState } from 'react'
-import { ELEMENT_LABEL } from '../core/flow'
 import type { Direction, ElementType } from '../core/types'
 import type { AutosaveStatus } from '../storage/autosave'
 import { wordCount } from './status'
+import { elementLabel, useLang, useT } from '../i18n'
 
 export default function StatusBar(props: {
   editor: Editor
@@ -17,6 +17,8 @@ export default function StatusBar(props: {
 }) {
   const { editor, currentElement, direction, onDirection } = props
   const [words, setWords] = useState(0)
+  const t = useT()
+  const lang = useLang()
 
   useEffect(() => {
     const update = () => {
@@ -42,26 +44,27 @@ export default function StatusBar(props: {
 
   return (
     <div className="sf-statusbar">
-      <span className="sf-status-element">{ELEMENT_LABEL[currentElement]}</span>
+      <span className="sf-status-element">{elementLabel(lang, currentElement)}</span>
       <span className="sf-save-status" data-testid="save-status">
-        {props.saveStatus === 'error' ? 'unsaved — storage error' : ''}
+        {props.saveStatus === 'error' ? t('status.storageError') : ''}
       </span>
-      <span className="sf-status-words">{words} words</span>
+      <span className="sf-status-words">{t('status.words', { n: words })}</span>
       <span className="sf-divider" aria-hidden="true" />
       <button
         type="button"
         className="sf-control"
-        aria-label={`switch writing direction to ${direction === 'ltr' ? 'right-to-left' : 'left-to-right'}`}
+        aria-label={direction === 'ltr' ? t('status.toFaLabel') : t('status.toEnLabel')}
+        lang={direction === 'ltr' ? 'fa' : 'en'}
         onClick={() => onDirection(direction === 'ltr' ? 'rtl' : 'ltr')}
       >
-        {direction === 'ltr' ? 'RTL' : 'LTR'}
+        {direction === 'ltr' ? t('status.toFa') : t('status.toEn')}
       </button>
       {props.onTheme && (
         <button
           type="button"
           className="sf-iconbtn"
-          aria-label={`Switch to ${props.theme === 'dark' ? 'light' : 'dark'} mode`}
-          title={`Switch to ${props.theme === 'dark' ? 'light' : 'dark'} mode`}
+          aria-label={props.theme === 'dark' ? t('status.toLight') : t('status.toDark')}
+          title={props.theme === 'dark' ? t('status.toLight') : t('status.toDark')}
           onClick={props.onTheme}
         >
           {props.theme === 'dark' ? (
@@ -80,8 +83,8 @@ export default function StatusBar(props: {
         <button
           type="button"
           className="sf-iconbtn"
-          aria-label="Open AI settings"
-          title="AI settings"
+          aria-label={t('status.aiSettings')}
+          title={t('status.aiSettingsTitle')}
           onClick={props.onOpenAiSettings}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

@@ -15,6 +15,8 @@
   --text: #131416;
   --muted: #5d5b57;
   --primary: #1d1c1a;
+  /* one face for both languages: Vazirmatn covers Persian and Latin */
+  --font: Vazirmatn, Tahoma, system-ui, sans-serif;
 }
 
 .sf-app[data-theme='dark'] {
@@ -37,8 +39,13 @@ body {
   margin: 0;
 }
 
+/* form controls don't inherit the page font by default */
+.sf-app :is(button, input, select, textarea) {
+  font-family: inherit;
+}
+
 .sf-app {
-  font-family: "IBM Plex Sans", Inter, system-ui, sans-serif;
+  font-family: var(--font);
   color: var(--text);
   background: var(--ground);
   min-height: 100vh;
@@ -106,7 +113,7 @@ body {
 }
 
 .sf-doc-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
   white-space: nowrap;
@@ -132,29 +139,35 @@ body {
   gap: 8px;
 }
 
-.sf-toolbar .sf-control {
+/* shared control style — toolbar, status bar and dialogs */
+.sf-control {
   height: 32px;
   border: 1px solid var(--control);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-  font: 500 14px/1 "IBM Plex Sans", sans-serif;
+  font: 500 14px/1 var(--font);
   padding: 0 12px;
   cursor: pointer;
 }
 
-.sf-toolbar .sf-control:hover {
+.sf-control:hover {
   background: var(--active);
 }
 
-.sf-toolbar .sf-save {
+.sf-save {
   border-color: var(--primary);
   background: var(--primary);
   color: var(--ground);
 }
 
-.sf-toolbar .sf-save:hover {
+.sf-save:hover {
   filter: brightness(0.92);
+}
+
+.sf-control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .sf-toolbar .sf-element-select {
@@ -243,7 +256,8 @@ body {
 }
 
 /* ── Focus mode: chrome drops ────────────────────────────────── */
-.sf-focus .sf-toolbar {
+/* everything in the toolbar goes except the way back out */
+.sf-focus .sf-toolbar > :not(.sf-toggle-focus) {
   display: none !important;
 }
 
@@ -338,28 +352,49 @@ body {
   width: 30rem;
 }
 
-.sf-ai-settings.sf-generate textarea {
+.sf-ai-settings.sf-generate textarea,
+.sf-ai-settings.sf-assist textarea {
   border: 1px solid var(--control);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-  font: 400 14px/1.5 "IBM Plex Sans", sans-serif;
+  font: 400 14px/1.5 var(--font);
   padding: 8px 10px;
   resize: vertical;
 }
 
 .sf-ai-settings.sf-generate textarea:focus-visible,
+.sf-ai-settings.sf-assist textarea:focus-visible,
 .sf-ai-settings.sf-generate input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
-.sf-check {
+/* a checkbox row: box and words on one line, the whole row clickable */
+.sf-ai-settings label.sf-check {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-height: 32px;
   font-size: 14px;
+  font-weight: 500;
   color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sf-ai-settings label.sf-check input[type='checkbox'] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.sf-ai-settings label.sf-check input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .sf-generate-result {
@@ -371,7 +406,7 @@ body {
 
 .sf-generate-title {
   margin: 0;
-  font: 600 16px "IBM Plex Sans", sans-serif;
+  font: 600 16px var(--font);
   color: var(--text);
 }
 
@@ -393,7 +428,7 @@ body {
   border-radius: 6px;
   background: none;
   color: var(--text);
-  font: 500 13px "IBM Plex Sans", sans-serif;
+  font: 500 13px var(--font);
   cursor: pointer;
   padding: 0 10px;
   text-align: start;
@@ -416,7 +451,7 @@ body {
 
 /* inline rename field for the document title */
 .sf-title-input {
-  font: 600 16px/1.2 "IBM Plex Sans", sans-serif;
+  font: 600 16px/1.2 var(--font);
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--accent);
@@ -468,18 +503,18 @@ body {
 }
 
 .sf-ai-settings label select,
-.sf-ai-settings label input {
+.sf-ai-settings label input:not([type='checkbox']) {
   height: 36px;
   border: 1px solid var(--control);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-  font: 400 14px "IBM Plex Sans", sans-serif;
+  font: 400 14px var(--font);
   padding: 0 10px;
 }
 
 .sf-ai-settings :is(select, input):focus-visible,
-.sf-toolbar .sf-control:focus-visible,
+.sf-control:focus-visible,
 .sf-iconbtn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
@@ -568,7 +603,7 @@ body {
   border-radius: 6px;
   background: none;
   color: var(--text);
-  font: 500 13px "IBM Plex Sans", sans-serif;
+  font: 500 13px var(--font);
   cursor: pointer;
   padding: 0 10px;
   white-space: nowrap;
@@ -585,7 +620,7 @@ body {
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-  font: 400 13px "IBM Plex Sans", sans-serif;
+  font: 400 13px var(--font);
   padding: 0 8px;
 }
 
@@ -601,4 +636,99 @@ body {
   background: #ffedea;
   border-radius: 999px;
   padding: 2px 8px;
+}
+
+/* writer's assistant: ideas, gap-filling lines, answers */
+.sf-ai-settings.sf-assist {
+  width: 36rem;
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.sf-assist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sf-assist-ask {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.sf-ai-settings.sf-assist .sf-assist-ask textarea {
+  min-height: 56px;
+}
+
+.sf-assist-ideas {
+  margin: 0;
+  padding-inline-start: 20px;
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.sf-assist-ideas li p {
+  margin: 0 0 6px;
+  line-height: 1.7;
+}
+
+.sf-assist-result {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.sf-assist-preview {
+  max-height: 40vh;
+  overflow-y: auto;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.sf-assist-line {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.sf-assist-type {
+  display: inline-block;
+  min-width: 6.5em;
+  margin-inline-end: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.sf-assist-character,
+.sf-assist-scene {
+  font-weight: 600;
+}
+
+.sf-assist-answer {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+@media (max-width: 560px) {
+  .sf-assist-ask {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sf-app[lang='fa'] .sf-assist-ideas {
+  list-style-type: persian;
 }

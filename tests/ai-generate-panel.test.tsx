@@ -25,7 +25,7 @@ describe('GeneratePanel', () => {
     vi.doMock('../src/ai/client', () => ({ chat, AiError: class extends Error {} }))
     const { default: Generate } = await import('../src/ui/GeneratePanel')
     const created: string[] = []
-    render(<Generate open onClose={() => {}} doc={undefined as never} onCreated={(d) => created.push(d.meta.title)} onAppend={() => {}} />)
+    render(<Generate direction="ltr" open onClose={() => {}} doc={undefined as never} onCreated={(d) => created.push(d.meta.title)} onAppend={() => {}} />)
     fireEvent.change(screen.getByLabelText('idea'), { target: { value: 'a lighthouse keeper' } })
     fireEvent.click(screen.getByRole('button', { name: 'Generate' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Open as new project' })).toBeTruthy())
@@ -41,7 +41,7 @@ describe('GeneratePanel', () => {
     })
     vi.doMock('../src/ai/client', () => ({ chat, AiError: class extends Error { code: string; constructor(m: string) { super(m); this.code = '' } } }))
     const { default: Generate } = await import('../src/ui/GeneratePanel')
-    render(<Generate open onClose={() => {}} doc={undefined as never} onCreated={() => {}} onAppend={() => {}} />)
+    render(<Generate direction="ltr" open onClose={() => {}} doc={undefined as never} onCreated={() => {}} onAppend={() => {}} />)
     fireEvent.change(screen.getByLabelText('idea'), { target: { value: 'idea' } })
     fireEvent.click(screen.getByRole('button', { name: 'Generate' }))
     await waitFor(() => expect(screen.getByText(/http-429/)).toBeTruthy())
@@ -57,6 +57,7 @@ describe('GeneratePanel', () => {
     render(
       <Generate
         open
+        direction="ltr"
         onClose={() => {}}
         doc={{ ...emptyDoc(), blocks: [{ type: 'scene', text: 'INT. HOUSE - NIGHT' }] }}
         onCreated={() => {}}
@@ -71,5 +72,23 @@ describe('GeneratePanel', () => {
     expect(appended).toEqual([2])
     const sent = (chat.mock.calls[0]?.[1] as { content: string }[] | undefined)?.[1]?.content ?? ''
     expect(sent).toContain('INT. HOUSE - NIGHT')
+  })
+})
+
+describe('Persian mode', () => {
+  it('tells the model to write in Persian even for an English idea, and opens the result right-to-left', async () => {
+    const chat = vi.fn(async (_cfg?: unknown, _msgs?: unknown[]) => PACKAGE)
+    vi.doMock('../src/ai/client', () => ({ chat, AiError: class extends Error {} }))
+    const { default: Generate } = await import('../src/ui/GeneratePanel')
+    const created: string[] = []
+    render(<Generate direction="rtl" open onClose={() => {}} doc={undefined as never} onCreated={(d) => created.push(d.direction)} onAppend={() => {}} />)
+    fireEvent.change(screen.getByLabelText('idea'), { target: { value: 'a lighthouse keeper' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Generate' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Open as new project' })).toBeTruthy())
+    const sent = (chat.mock.calls[0]?.[1] as { content: string }[] | undefined)?.[1]?.content ?? ''
+    expect(sent).toMatch(/Write every piece of text in Persian \(Farsi\)/)
+    expect(sent).toMatch(/even if the idea/)
+    fireEvent.click(screen.getByRole('button', { name: 'Open as new project' }))
+    expect(created).toEqual(['rtl'])
   })
 })

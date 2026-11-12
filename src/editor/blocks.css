@@ -3,7 +3,8 @@
    duplicated here for CSS; unify into generated styles when real
    pagination (Phase 3) lands. */
 .sf-paper .sf-block {
-  font-family: 'Courier Prime', 'Courier New', Courier, monospace; // taste-skill-ignore: Courier is the screenplay's set face, not UI chrome
+  font-family: var(--font, Vazirmatn, sans-serif);
+  line-height: 1.75;
 }
 
 /* the empty page carries the first action (taste-skill first-run rule) */
@@ -15,8 +16,7 @@
   height: 0;
   color: var(--control, #cdccc7);
   pointer-events: none;
-  /* taste-skill-ignore: Courier is the screenplay's set face, not UI chrome */
-  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+  font-family: var(--font, Vazirmatn, sans-serif);
 }
 
 

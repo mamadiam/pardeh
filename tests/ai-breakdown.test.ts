@@ -58,3 +58,12 @@ describe('parseBreakdown', () => {
     expect(threw).toBe('yes')
   })
 })
+
+describe('breakdown language', () => {
+  it('asks for Persian when the script is right-to-left', async () => {
+    const { buildBreakdownPrompt } = await import('../src/ai/breakdown')
+    const { emptyDoc } = await import('../src/core/types')
+    const doc = { ...emptyDoc(), direction: 'rtl' as const, blocks: [{ type: 'action' as const, text: 'مینا می‌آید.' }] }
+    expect(buildBreakdownPrompt(doc).prompt).toMatch(/in Persian \(Farsi\)/)
+  })
+})

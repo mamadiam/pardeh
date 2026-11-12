@@ -4,7 +4,8 @@ import type { Editor } from '@tiptap/core'
 import type { ScreenplayDoc, Direction, ElementType, ScreenplayBlock } from './core/types'
 import { saveToJson, loadFromJson } from './core/serialize'
 import { emptyDoc } from './core/types'
-import { createEditor, tiptapToDoc } from './editor/schema'
+import { createEditor, setPlaceholder, tiptapToDoc } from './editor/schema'
+import { LangProvider, langFor, translate } from './i18n'
 import { deleteDoc, loadDoc, saveDoc } from './storage/db'
 import {
   addProject,
@@ -19,6 +20,7 @@ import { useAutosave } from './storage/autosave'
 import AiSettings from './ui/AiSettings'
 import BreakdownPanel from './ui/BreakdownPanel'
 import GeneratePanel from './ui/GeneratePanel'
+import AssistPanel from './ui/AssistPanel'
 import { FloatingMenu, type MenuItem } from './ui/FloatingMenu'
 import Toolbar from './ui/Toolbar'
 import StatusBar from './ui/StatusBar'
@@ -109,6 +111,23 @@ export default function App(props: {
     setEditor(ed)
     props.onEditorReady?.(ed)
   }, [doc, editor]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Esc leaves focus mode, unless a dialog or menu is open and wants Esc itself
+  useEffect(() => {
+    if (!focus) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (document.querySelector('.sf-ai-overlay, .sf-floating-menu, .sf-selection-menu')) return
+      setFocus(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [focus])
+
+  // the empty-page hint speaks the interface language
+  useEffect(() => {
+    if (editor) setPlaceholder(editor, translate(langFor(direction), 'editor.placeholder'))
+  }, [editor, direction])
 
   const { status: saveStatus } = useAutosave(
     () =>
@@ -225,6 +244,14 @@ export default function App(props: {
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false)
   const [breakdownOpen, setBreakdownOpen] = useState(false)
   const [generateOpen, setGenerateOpen] = useState(false)
+  const [assistOpen, setAssistOpen] = useState(false)
+  // what the panels read: the script as typed now, not as it was when loaded
+  const [panelDoc, setPanelDoc] = useState<ScreenplayDoc | null>(null)
+  const snapshotDoc = useCallback(
+    (): ScreenplayDoc | null =>
+      editor && doc ? tiptapToDoc(editor.getJSON().content ?? [], doc.meta, directionRef.current) : doc,
+    [editor, doc],
+  )
   const closeAiSettings = useCallback(() => {
     setAiSettingsOpen(false)
   }, [])
@@ -281,12 +308,17 @@ export default function App(props: {
     URL.revokeObjectURL(url)
   }, [editor, doc])
 
+  const lang = langFor(direction)
+  const t = (key: Parameters<typeof translate>[1]) => translate(lang, key)
+
   if (!doc || !editor) return null
 
   return (
+    <LangProvider lang={lang}>
     <div
       className={`sf-app${focus ? ' sf-focus' : ''}`}
       dir={direction}
+      lang={lang}
       data-direction={direction}
       data-theme={theme}
     >
@@ -294,7 +326,7 @@ export default function App(props: {
         <button
           type="button"
           className="sf-badge"
-          aria-label="projects"
+          aria-label={t('app.projects')}
           aria-haspopup="menu"
           onClick={(e) => {
             const r = e.currentTarget.getBoundingClientRect()
@@ -311,7 +343,7 @@ export default function App(props: {
         {renaming ? (
           <input
             className="sf-title-input"
-            aria-label="screenplay title"
+            aria-label={t('app.titleInput')}
             value={draftTitle}
             autoFocus
             onChange={(e) => setDraftTitle(e.target.value)}
@@ -329,7 +361,7 @@ export default function App(props: {
               setHeaderMenu({ x: e.clientX, y: e.clientY, kind: 'title' })
             }}
           >
-            {doc.meta.title || 'Untitled screenplay'}
+            {doc.meta.title || t('app.untitled')}
           </h1>
         )}
         <span className="sf-divider" aria-hidden="true" />
@@ -339,8 +371,15 @@ export default function App(props: {
           onSave={onSave}
           onFocus={() => setFocus((f) => !f)}
           focus={focus}
-          onBreakdown={() => setBreakdownOpen(true)}
-          onGenerate={() => setGenerateOpen(true)}
+          onBreakdown={() => {
+            setPanelDoc(snapshotDoc())
+            setBreakdownOpen(true)
+          }}
+          onGenerate={() => {
+            setPanelDoc(snapshotDoc())
+            setGenerateOpen(true)
+          }}
+          onAssist={() => setAssistOpen(true)}
         />
         <span className="sf-spacer" />
         <StatusBar
@@ -358,17 +397,29 @@ export default function App(props: {
         <EditorView editor={editor} doc={doc} onEditorReady={props.onEditorReady} />
       </main>
       <AiSettings open={aiSettingsOpen} onClose={closeAiSettings} />
+      <AssistPanel
+        open={assistOpen}
+        onClose={() => setAssistOpen(false)}
+        editor={editor}
+        meta={doc.meta}
+        direction={direction}
+        onOpenSettings={() => {
+          setAssistOpen(false)
+          setAiSettingsOpen(true)
+        }}
+      />
       <GeneratePanel
         open={generateOpen}
         onClose={() => setGenerateOpen(false)}
-        doc={doc}
+        doc={panelDoc ?? doc}
+        direction={direction}
         onCreated={createGenerated}
         onAppend={appendGenerated}
       />
       <BreakdownPanel
         open={breakdownOpen}
         onClose={() => setBreakdownOpen(false)}
-        doc={doc}
+        doc={panelDoc ?? doc}
         onOpenSettings={openBreakdownSettings}
       />
       {headerMenu && (
@@ -380,19 +431,20 @@ export default function App(props: {
             headerMenu.kind === 'projects'
               ? [
                   ...(projects?.projects ?? []).map((p) => ({
-                    label: p.id === activeId ? `✓ ${p.title || 'Untitled screenplay'}` : p.title || 'Untitled screenplay',
+                    label: p.id === activeId ? `✓ ${p.title || t('app.untitled')}` : p.title || t('app.untitled'),
                     onSelect: () => switchProject(p.id),
                   })),
-                  { label: 'New screenplay', onSelect: newProject },
+                  { label: t('menu.newScreenplay'), onSelect: newProject },
                 ]
               : ([
-                  { label: 'Rename', onSelect: beginRename },
-                  { label: 'Export', onSelect: onSave },
-                  { label: 'Remove project', onSelect: () => removeProjectById(activeId), danger: true },
+                  { label: t('menu.rename'), onSelect: beginRename },
+                  { label: t('menu.export'), onSelect: onSave },
+                  { label: t('menu.remove'), onSelect: () => removeProjectById(activeId), danger: true },
                 ] as MenuItem[])
           }
         />
       )}
     </div>
+    </LangProvider>
   )
 }

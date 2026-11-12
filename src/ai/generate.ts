@@ -1,5 +1,6 @@
 import { AiError } from './client'
-import type { ElementType, ScreenplayBlock, ScreenplayDoc } from '../core/types'
+import type { Direction, ElementType, ScreenplayBlock, ScreenplayDoc } from '../core/types'
+import { writeIn } from './language'
 
 export interface GeneratedScene {
   heading: string
@@ -17,6 +18,7 @@ export interface GeneratedPackage {
 export interface GenerateOptions {
   genre?: string
   continueFrom?: string
+  direction?: Direction
 }
 
 const ELEMENTS: ElementType[] = ['scene', 'action', 'character', 'parenthetical', 'dialogue', 'transition']
@@ -28,7 +30,7 @@ export function buildGeneratePrompt(idea: string, opts: GenerateOptions = {}): {
     shape,
     'block "type" must be one of: scene, action, character, parenthetical, dialogue, transition.',
     'Write 6 to 8 fully dramatized scenes — dialogue, action lines, transitions — not summaries. Every scene starts with a "heading" (a slugline) and the heading is also the first block as type "scene".',
-    'Every string must use the same language as the idea.',
+    writeIn(opts.direction ?? 'ltr'),
   ]
   if (opts.genre) lines.push(`Genre: ${opts.genre}.`)
   if (opts.continueFrom) {
@@ -81,7 +83,7 @@ export function parseGenerated(raw: string): GeneratedPackage {
   }
 }
 
-export function docFromGenerated(gen: GeneratedPackage): ScreenplayDoc {
+export function docFromGenerated(gen: GeneratedPackage, direction: Direction = 'ltr'): ScreenplayDoc {
   const blocks: ScreenplayBlock[] = []
   for (const scene of gen.scenes) {
     blocks.push({ type: 'scene', text: scene.heading })
@@ -90,7 +92,7 @@ export function docFromGenerated(gen: GeneratedPackage): ScreenplayDoc {
   return {
     schemaVersion: 1,
     meta: { title: gen.title, author: '', created: new Date().toISOString(), modified: new Date().toISOString() },
-    direction: 'ltr',
+    direction,
     blocks: blocks.length > 0 ? blocks : [{ type: 'action', text: '' }],
   }
 }

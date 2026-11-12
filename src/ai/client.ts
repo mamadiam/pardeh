@@ -86,6 +86,63 @@ async function opencodeChat(
   }
 }
 
+// Claude speaks Anthropic's Messages API, not the OpenAI shape. The writer's own
+// key is sent from their own browser, which Anthropic allows with an opt-in header.
+const ANTHROPIC_VERSION = '2023-06-01'
+const ANTHROPIC_MAX_TOKENS = 8192
+
+function anthropicHeaders(cfg: AiConfig): Record<string, string> {
+  if (!cfg.apiKey) throw new AiError('no-config', 'Claude API key missing')
+  return {
+    'content-type': 'application/json',
+    'x-api-key': cfg.apiKey,
+    'anthropic-version': ANTHROPIC_VERSION,
+    'anthropic-dangerous-direct-browser-access': 'true',
+  }
+}
+
+async function anthropicChat(
+  cfg: AiConfig,
+  messages: ChatMessage[],
+  opts: { timeoutMs?: number },
+): Promise<string> {
+  const headers = anthropicHeaders(cfg)
+  const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n')
+  const turns = messages
+    .filter((m) => m.role !== 'system')
+    .map((m) => ({ role: m.role, content: m.content }))
+  const res = await request(
+    cfg,
+    '/messages',
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: cfg.model,
+        max_tokens: ANTHROPIC_MAX_TOKENS,
+        ...(system && { system }),
+        messages: turns,
+      }),
+    },
+    opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+  )
+  if (!res.ok) throw new AiError(`http-${res.status}`, `provider returned HTTP ${res.status}`, res.status)
+  const data = (await res.json()) as { content?: { type?: string; text?: string }[] }
+  const text = (data.content ?? [])
+    .filter((b) => b.type === 'text' && typeof b.text === 'string')
+    .map((b) => b.text)
+    .join('')
+  if (text === '') throw new AiError('bad-response', 'provider returned no content')
+  return text
+}
+
+async function listAnthropicModels(cfg: AiConfig): Promise<string[]> {
+  const res = await request(cfg, '/models?limit=100', { headers: anthropicHeaders(cfg) }, 15_000)
+  if (!res.ok) throw new AiError(`http-${res.status}`, `provider returned HTTP ${res.status}`, res.status)
+  const data = (await res.json()) as { data?: { id?: string }[] }
+  return (data.data ?? []).map((m) => m.id).filter((id): id is string => typeof id === 'string')
+}
+
 export async function chat(
   cfg: AiConfig,
   messages: ChatMessage[],
@@ -93,6 +150,7 @@ export async function chat(
 ): Promise<string> {
   if (!cfg.model) throw new AiError('no-config', 'no model selected')
   if (cfg.provider === 'opencode') return opencodeChat(cfg, messages, opts)
+  if (cfg.provider === 'anthropic') return anthropicChat(cfg, messages, opts)
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (cfg.apiKey) headers.Authorization = `Bearer ${cfg.apiKey}`
   const res = await request(
@@ -118,6 +176,7 @@ export interface ProviderError extends AiError {}
 
 export async function listModels(cfg: AiConfig): Promise<string[]> {
   if (cfg.provider === 'opencode') return listOpencodeModels(cfg)
+  if (cfg.provider === 'anthropic') return listAnthropicModels(cfg)
   try {
     const res = await request(cfg, '/models', {}, 15_000)
     if (res.status === 404 && cfg.provider !== 'ollama') throw new AiError('network', 'no /models')

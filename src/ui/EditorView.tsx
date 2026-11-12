@@ -7,6 +7,7 @@ import type { RewriteKind } from '../ai/rewrite'
 import { rewriteSelection } from '../ai/rewrite'
 import { AiError } from '../ai/client'
 import { menuPosition, SelectionMenu } from './SelectionMenu'
+import { useT } from '../i18n'
 
 interface MenuState {
   rect: { top: number; left: number }
@@ -22,6 +23,7 @@ export default function EditorView(props: {
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const t = useT()
 
   useEffect(() => {
     onEditorReady?.(editor)
@@ -63,14 +65,14 @@ export default function EditorView(props: {
         await rewriteSelection(editor, kind, { customInstruction: instruction, range: menu.range })
         setMenu(null)
       } catch (e) {
-        setError(e instanceof AiError || e instanceof Error ? e.message : 'Something went wrong')
+        setError(e instanceof AiError || e instanceof Error ? e.message : t('editor.genericError'))
         setPending(false)
         // keep the menu open for the Retry affordance
         return
       }
       setPending(false)
     },
-    [editor, menu],
+    [editor, menu, t],
   )
 
   return (

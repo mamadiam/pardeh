@@ -3,7 +3,8 @@ import { AiError, chat } from '../ai/client'
 import { loadAiConfig } from '../ai/config'
 import { buildGeneratePrompt, docFromGenerated, parseGenerated } from '../ai/generate'
 import type { GeneratedPackage } from '../ai/generate'
-import type { ScreenplayBlock, ScreenplayDoc } from '../core/types'
+import type { Direction, ScreenplayBlock, ScreenplayDoc } from '../core/types'
+import { useT } from '../i18n'
 
 // generation studio: an idea in, a full chapter out — either as a brand new
 // project or appended to the open screenplay
@@ -11,6 +12,7 @@ export default function GeneratePanel(props: {
   open: boolean
   onClose: () => void
   doc: ScreenplayDoc
+  direction: Direction
   onCreated: (doc: ScreenplayDoc) => void
   onAppend: (blocks: ScreenplayBlock[]) => void
 }) {
@@ -20,6 +22,7 @@ export default function GeneratePanel(props: {
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<GeneratedPackage | null>(null)
+  const t = useT()
 
   const hasScript = props.doc?.blocks.some((b) => b.text.trim() !== '') ?? false
 
@@ -56,13 +59,13 @@ export default function GeneratePanel(props: {
     try {
       const raw = await chat(cfg, [
         { role: 'system', content: 'You are a screenwriter. Output ONLY valid JSON.' },
-        { role: 'user', content: buildGeneratePrompt(idea, { genre: genre || undefined, continueFrom: lastScene }).prompt },
+        { role: 'user', content: buildGeneratePrompt(idea, { genre: genre || undefined, continueFrom: lastScene, direction: props.direction }).prompt },
       ])
       const gen = parseGenerated(raw)
       setResult(gen)
       setRunning(false)
     } catch (e) {
-      setError(e instanceof AiError ? `${e.code}: ${e.message}` : e instanceof Error ? e.message : 'Something went wrong')
+      setError(e instanceof AiError ? `${e.code}: ${e.message}` : e instanceof Error ? e.message : t('editor.genericError'))
       setRunning(false)
     }
   }
@@ -78,53 +81,53 @@ export default function GeneratePanel(props: {
       }
       props.onAppend(blocks)
     } else {
-      props.onCreated(docFromGenerated(result))
+      props.onCreated(docFromGenerated(result, props.direction))
     }
   }
 
   return (
-    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label="generate screenplay">
+    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label={t('gen.dialog')}>
       <div className="sf-ai-settings sf-generate">
-        <button type="button" className="sf-close" aria-label="close generate" onClick={props.onClose}>×</button>
-        <h2>Generate</h2>
+        <button type="button" className="sf-close" aria-label={t('gen.close')} onClick={props.onClose}>×</button>
+        <h2>{t('gen.title')}</h2>
         {continueMode ? (
-          <p className="sf-ai-note">Appends the new chapter to the open screenplay, continuing after its last scene.</p>
+          <p className="sf-ai-note">{t('gen.noteAppend')}</p>
         ) : (
-          <p className="sf-ai-note">Creates a new screenplay: title, characters, and a fully written first chapter of scenes.</p>
+          <p className="sf-ai-note">{t('gen.noteNew')}</p>
         )}
         {hasScript && (
           <label className="sf-check">
             <input
               type="checkbox"
-              aria-label="continue current screenplay"
+              aria-label={t('gen.continueLabel')}
               checked={continueMode}
               onChange={(e) => setContinueMode(e.target.checked)}
             />
-            Continue current screenplay
+            {t('gen.continue')}
           </label>
         )}
         <label>
-          Idea
+          {t('gen.idea')}
           <textarea
-            aria-label="idea"
+            aria-label={t('gen.ideaLabel')}
             rows={4}
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
-            placeholder="A lighthouse keeper finds a mermaid tangled in his nets…"
+            placeholder={t('gen.ideaPlaceholder')}
           />
         </label>
         <label>
-          Genre (optional)
+          {t('gen.genre')}
           <input
-            aria-label="genre"
+            aria-label={t('gen.genreLabel')}
             value={genre}
             onChange={(e) => setGenre(e.target.value)}
-            placeholder="noir, comedy, …"
+            placeholder={t('gen.genrePlaceholder')}
           />
         </label>
         <div className="sf-ai-row">
           <button type="button" className="sf-control sf-save" onClick={run} disabled={running || idea.trim() === ''}>
-            {running ? 'Writing…' : 'Generate'}
+            {running ? t('gen.writing') : t('gen.run')}
           </button>
           {error && <span className="sf-rewrite-error">{error}</span>}
         </div>
@@ -134,10 +137,10 @@ export default function GeneratePanel(props: {
             {result.logline && <p className="sf-ai-note">{result.logline}</p>}
             <p className="sf-ai-note">
               {result.genre && `${result.genre} — `}
-              {result.characters.length} characters, {result.scenes.length} scenes
+              {t('gen.summary', { characters: result.characters.length, scenes: result.scenes.length })}
             </p>
             <button type="button" className="sf-control sf-save" onClick={deliver}>
-              {continueMode ? 'Append chapter' : 'Open as new project'}
+              {continueMode ? t('gen.append') : t('gen.openNew')}
             </button>
           </div>
         )}
