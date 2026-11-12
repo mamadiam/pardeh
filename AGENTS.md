@@ -1,9 +1,9 @@
 # Agent guide
 
-ScreenForge is a GPL-3.0 web screenplay editor for RTL (Persian/Arabic) and LTR writers, built with
+Pardeh (پرده, first named ScreenForge) is a GPL-3.0 web screenplay editor for RTL (Persian/Arabic) and LTR writers, built with
 React, Vite, TypeScript and TipTap, with an optional bring-your-own-model AI layer.
 
-**Read `skills/screenforge/SKILL.md` before changing anything.** It has the code map, the rules
+**Read `skills/pardeh/SKILL.md` before changing anything.** It has the code map, the rules
 that must not break, the UI contract, the test approach and the roadmap.
 
 ## Quick reference

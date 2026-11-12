@@ -1,11 +1,13 @@
 ---
-name: screenforge
-description: Use for any work in the ScreenForge repo, a web screenplay editor for RTL and LTR writers with a bring-your-own-model AI layer. Covers what the product is, how the code is laid out, the rules that must not break, how to test, and what to build next.
+name: pardeh
+description: Use for any work in the Pardeh repo (first named ScreenForge), a web screenplay editor for RTL and LTR writers with a bring-your-own-model AI layer. Covers what the product is, how the code is laid out, the rules that must not break, how to test, and what to build next.
 ---
 
-# ScreenForge
+# Pardeh (پرده)
 
-ScreenForge is a free, open-source (GPL-3.0-only) screenwriting app that runs in the browser. It is
+Pardeh (Persian for the cinema screen, a curtain, and an act) was first called ScreenForge;
+some internal names (the IndexedDB database `screenforge`, `sf-*` CSS classes and storage keys)
+keep the old name on purpose so saved scripts survive. Pardeh is a free, open-source (GPL-3.0-only) screenwriting app that runs in the browser. It is
 built for writers in both directions: Persian/Arabic (RTL) as well as English (LTR). The long-term
 goal is a tool where a writer pitches a scene in a sentence or two, the engine writes it, and scene by
 scene a full movie script grows; later, filmmakers get breakdowns, shot lists and schedules from the
@@ -32,16 +34,19 @@ There is no linter; TypeScript is `strict` with `noUnusedLocals` / `noUnusedPara
 | --- | --- |
 | `src/core/types.ts` | Document model: `ScreenplayDoc { schemaVersion, meta, direction, blocks[] }`, six `ElementType`s |
 | `src/core/flow.ts` | Element order, labels, Enter flow, Tab cycling (ported from filmnevis `constants.py`) |
-| `src/core/serialize.ts` | `.screenforge` JSON save/load, tolerant of corrupt or legacy records |
+| `src/core/serialize.ts` | Project JSON save/load (`.pardeh` files; older exports are `.screenforge`), tolerant of corrupt or legacy records |
 | `src/editor/schema.ts` | TipTap (v2) editor: one `block` node with an `elementType` attr; `tiptapToDoc` |
 | `src/editor/keymap.ts` | Enter / Tab / Ctrl+1…6 behaviour |
 | `src/editor/blocks.css`, `blockStyle.ts` | Screenplay indents in mm, written as logical CSS (`margin-inline-start`) |
 | `src/storage/db.ts` | IndexedDB `screenforge` / store `scripts` — script bodies |
 | `src/storage/projects.ts` | Project index in localStorage `sf-projects` |
 | `src/storage/autosave.ts` | Debounced autosave with a visible error state |
-| `src/ai/client.ts` | One client (`chat`, `listModels`, `AiError`) for every provider: OpenAI-compatible by default, plus small built-in adapters for Claude's Messages API and the OpenCode service |
-| `src/ai/types.ts`, `config.ts` | Provider registry (Ollama, LM Studio, OpenAI, Claude, OpenRouter, OpenCode, custom); config in localStorage `sf-ai` |
+| `src/ai/client.ts` | One client (`chat`, `listModels`, `AiError`) for every provider: OpenAI-compatible by default, plus small built-in adapters for Claude's Messages API, Gemini's generateContent and the OpenCode service |
+| `src/ai/types.ts`, `config.ts` | Provider registry (Ollama, LM Studio, OpenAI, Claude, Gemini, OpenRouter, OpenCode, custom); config in localStorage `sf-ai` |
 | `src/ai/rewrite.ts`, `breakdown.ts`, `generate.ts` | Selection rewrite, script breakdown, generate-from-idea |
+| `src/ai/chat.ts`, `src/ui/SidePanel.tsx` | Side panel beside the page: **Chat** (free chat about the script plus slash commands `/scene /outline /character /punchup /format /coverage /pagecount /help`; history per project in localStorage `sf-chat:<id>`) and **Scenes** (timeline with page/runtime estimate, click to jump). Results wait for Insert / Replace this scene |
+| `src/glossary.ts`, `src/ui/GlossaryDialog.tsx` | Screenwriting glossary, written for this app in English and Persian |
+| `src/ai/language.ts` | `writeIn(direction)`: Persian mode always asks the model for Persian |
 | `src/ai/assist.ts`, `src/ui/AssistPanel.tsx` | Writer's Assistant: ideas for what happens next or for this scene, fill the gap (inserted at the cursor as one undo step), ask anything; reads the scene around the cursor |
 | `src/ui/*` | Toolbar, StatusBar, EditorView, SelectionMenu, FloatingMenu, AiSettings, BreakdownPanel, GeneratePanel |
 | `src/App.tsx`, `App.css` | App shell, project switching, design tokens and all component styles |
@@ -108,7 +113,7 @@ These come from the filmnevis post-mortems and the design doc. Breaking one is a
 ## Where the project is going
 
 The plan is to merge the newer filmnevis rewrite at `~/filmnevis-explore/filmnevis-app` (Tauri +
-TipTap v3 + Typst; own nested git repo) into ScreenForge, then build the pitch loop. Steps, in order;
+TipTap v3 + Typst; own nested git repo) into Pardeh, then build the pitch loop. Steps, in order;
 each must pass its check before the next:
 
 1. **Typst spike: done (Nov 12, 2026).** filmnevis-app's `src/export/typst.ts` renders mixed
@@ -116,7 +121,7 @@ each must pass its check before the next:
    punctuation (، ؛ ؟ « ») is kept outside isolated English runs. Open: (MORE)/(CONT'D) on page-split
    dialogue, the blank line after scene headings, and a manual copy-paste check of PDF text in a real
    viewer.
-2. **TipTap v2 → v3** in ScreenForge with no feature changes. All tests still pass.
+2. **TipTap v2 → v3** in Pardeh with no feature changes. All tests still pass.
 3. **Merged document model.** Adopt filmnevis-app's schema v2 (`src/model/schema.ts`: story artifacts
    idea → logline → characters → beats → locations → scenes, each with revision, status and inputs;
    screenplay blocks with id, `lang`, `direction`). Migrate `.screenforge` v1 and stored projects;
@@ -139,5 +144,5 @@ timer, StudioBinder/Filmustage breakdown → shot list → schedule for the late
 
 ## Open decisions
 
-- Default paper: filmnevis-app uses A4; ScreenForge's design doc says US Letter.
+- Default paper: filmnevis-app uses A4; Pardeh's design doc says US Letter.
 - Which local models write acceptable Persian scenes; test several before choosing defaults.
