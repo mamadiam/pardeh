@@ -1,4 +1,4 @@
-import type { AiConfig } from './types'
+import { providerInfo, type AiConfig } from './types'
 
 export class AiError extends Error {
   code: string
@@ -192,6 +192,15 @@ async function listGeminiModels(cfg: AiConfig): Promise<string[]> {
     .map((m) => (m.name as string).replace(/^models\//, ''))
 }
 
+// OpenAI-compatible providers: the writer's own key as a bearer token.
+// A provider that needs a key fails here, before any request leaves the browser.
+function bearer(cfg: AiConfig): Record<string, string> {
+  if (cfg.apiKey) return { Authorization: `Bearer ${cfg.apiKey}` }
+  const info = providerInfo(cfg.provider)
+  if (info.needsKey) throw new AiError('no-config', `${info.label} API key missing`)
+  return {}
+}
+
 export async function chat(
   cfg: AiConfig,
   messages: ChatMessage[],
@@ -201,8 +210,7 @@ export async function chat(
   if (cfg.provider === 'opencode') return opencodeChat(cfg, messages, opts)
   if (cfg.provider === 'anthropic') return anthropicChat(cfg, messages, opts)
   if (cfg.provider === 'gemini') return geminiChat(cfg, messages, opts)
-  const headers: Record<string, string> = { 'content-type': 'application/json' }
-  if (cfg.apiKey) headers.Authorization = `Bearer ${cfg.apiKey}`
+  const headers = { 'content-type': 'application/json', ...bearer(cfg) }
   const res = await request(
     cfg,
     '/chat/completions',
@@ -222,18 +230,19 @@ export async function chat(
   return content
 }
 
-export interface ProviderError extends AiError {}
-
 export async function listModels(cfg: AiConfig): Promise<string[]> {
   if (cfg.provider === 'opencode') return listOpencodeModels(cfg)
   if (cfg.provider === 'anthropic') return listAnthropicModels(cfg)
   if (cfg.provider === 'gemini') return listGeminiModels(cfg)
   try {
-    const res = await request(cfg, '/models', {}, 15_000)
-    if (res.status === 404 && cfg.provider !== 'ollama') throw new AiError('network', 'no /models')
-    const data = (await res.json()) as { data?: { id?: string }[] }
-    const ids = (data.data ?? []).map((m) => m.id).filter((id): id is string => typeof id === 'string')
-    return ids
+    const res = await request(cfg, '/models', { headers: bearer(cfg) }, 15_000)
+    if (!res.ok && cfg.provider !== 'ollama') {
+      throw new AiError(`http-${res.status}`, `provider returned HTTP ${res.status}`, res.status)
+    }
+    // most providers answer { data: [...] }; Together answers with the bare array
+    const data = (await res.json()) as { data?: { id?: string }[] } | { id?: string }[]
+    const list = Array.isArray(data) ? data : (data.data ?? [])
+    return list.map((m) => m.id).filter((id): id is string => typeof id === 'string')
   } catch (e) {
     // ollama's native catalogue at /api/tags — every failure path falls back
     // except a non-ollama provider's own structured answer

@@ -15,6 +15,11 @@
   --text: #131416;
   --muted: #5d5b57;
   --primary: #1d1c1a;
+  /* status pills: text, never the only cue */
+  --ok: #04250e;
+  --ok-bg: #dcfae5;
+  --danger: #831c1e;
+  --danger-bg: #ffedea;
   /* one face for both languages: Vazirmatn covers Persian and Latin */
   --font: Vazirmatn, Tahoma, system-ui, sans-serif;
 }
@@ -32,6 +37,10 @@
   --text: #f2f2ef;
   --muted: #a5a29c;
   --primary: #f2f2ef;
+  --ok: #b8f0c8;
+  --ok-bg: #10321f;
+  --danger: #f3a6a4;
+  --danger-bg: #3a1617;
 }
 
 html,
@@ -452,7 +461,7 @@ body {
 }
 
 .sf-floating-menu .sf-menu-danger {
-  color: #831c1e;
+  color: var(--danger);
 }
 
 .sf-badge {
@@ -488,7 +497,10 @@ body {
 .sf-ai-settings {
   position: relative;
   width: 26rem;
-  max-width: calc(100vw - 32px);
+  max-width: calc(100% - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -536,6 +548,21 @@ body {
   color: var(--muted);
 }
 
+/* a note belongs to the field above it, not to the next field */
+.sf-ai-settings > .sf-ai-note {
+  margin-block-start: -6px;
+}
+
+.sf-ai-note a {
+  color: var(--accent);
+}
+
+.sf-ai-warn {
+  color: var(--text);
+  border-inline-start: 2px solid var(--accent);
+  padding-inline-start: 8px;
+}
+
 .sf-ai-row {
   display: flex;
   align-items: center;
@@ -549,18 +576,19 @@ body {
   align-items: center;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #dcfae5;
-  color: #04250e;
+  background: var(--ok-bg);
+  color: var(--ok);
   font-size: 12px;
   flex: none;
 }
 
 .sf-ai-result.sf-err {
-  color: #831c1e;
-  background: #ffedea;
+  color: var(--danger);
+  background: var(--danger-bg);
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .sf-ai-result.sf-testing,
@@ -579,8 +607,8 @@ body {
   position: absolute;
   top: 12px;
   inset-inline-end: 12px;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: 0;
   background: none;
   color: var(--muted);
@@ -642,8 +670,8 @@ body {
 
 .sf-selection-menu .sf-rewrite-error {
   font-size: 12px;
-  color: #831c1e;
-  background: #ffedea;
+  color: var(--danger);
+  background: var(--danger-bg);
   border-radius: 999px;
   padding: 2px 8px;
 }
@@ -1102,9 +1130,13 @@ body {
 
 /* glossary */
 .sf-ai-settings.sf-glossary {
-  width: 34rem;
+  width: 44rem;
   max-height: 86vh;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
+}
+
+.sf-glossary-sub {
+  margin-block-start: -8px;
 }
 
 .sf-glossary-search {
@@ -1126,22 +1158,29 @@ body {
   margin: 0;
   overflow-y: auto;
   min-height: 0;
+  overscroll-behavior: contain;
   display: grid;
-  gap: 10px;
 }
 
+/* term and definition sit side by side, like a reference page; rows are split by space, then one rule */
 .sf-glossary-entry {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: 2px 16px;
+  align-items: baseline;
+  padding-block: 10px;
+  border-block-start: 1px solid var(--rule);
+}
+
+.sf-glossary-entry:first-child {
+  border-block-start: 0;
 }
 
 .sf-glossary-entry dt {
   font-size: 14px;
   font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 2px;
 }
 
 .sf-glossary-alt {
@@ -1151,10 +1190,16 @@ body {
 }
 
 .sf-glossary-entry dd {
-  margin: 4px 0 0;
+  margin: 0;
   font-size: 13px;
   line-height: 1.75;
-  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .sf-glossary-entry {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }
 
 /* narrow screens: the panel slides over the page */

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AiError, chat } from '../ai/client'
 import { loadAiConfig } from '../ai/config'
 import { buildBreakdownPrompt, parseBreakdown } from '../ai/breakdown'
 import type { BreakdownResult } from '../ai/breakdown'
 import type { ScreenplayDoc } from '../core/types'
 import { useT } from '../i18n'
+import Dialog from './Dialog'
 
 export default function BreakdownPanel(props: {
   open: boolean
@@ -19,15 +20,6 @@ export default function BreakdownPanel(props: {
   const t = useT()
 
   // all hooks run before any early return (rules of hooks)
-  useEffect(() => {
-    if (!props.open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') props.onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [props])
-
   if (!props.open) return null
 
   const cfg = loadAiConfig()
@@ -57,69 +49,67 @@ export default function BreakdownPanel(props: {
   }
 
   return (
-    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label={t('bd.dialog')}>
-      <div className="sf-breakdown">
-        <button type="button" className="sf-close" aria-label={t('bd.close')} onClick={props.onClose}>×</button>
-        <h2 className="sf-doc-title">{t('bd.title')}</h2>
-        {!configured ? (
-          <div className="sf-breakdown-state">
-            <p>{t('bd.noProvider')}</p>
-            <button type="button" className="sf-control" onClick={props.onOpenSettings}>{t('bd.openSettings')}</button>
-          </div>
-        ) : running ? (
-          <>
-            <p className="sf-breakdown-kicker">{t('bd.reading')}</p>
-            <p className="sf-breakdown-loading">{t('bd.willAppear')}</p>
-          </>
-        ) : error ? (
-          <div className="sf-breakdown-state">
-            <p className="sf-ai-result sf-err">{error}</p>
-            <button type="button" className="sf-control" onClick={run}>{t('bd.retry')}</button>
-          </div>
-        ) : result ? (
-          <div className="sf-breakdown-body">
-            <p className="sf-breakdown-logline">{result.logline}</p>
-            {result.characters.length > 0 && (
-              <section>
-                <h3>{t('bd.characters')}</h3>
-                <ul>
-                  {result.characters.map((c) => (
-                    <li key={c.name}>
-                      <strong>{c.name}</strong>
-                      {c.description && <span className="sf-breakdown-desc"> {c.description}</span>}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-            {result.locations.length > 0 && (
-              <section>
-                <h3>{t('bd.locations')}</h3>
-                <p>{result.locations.join(' · ')}</p>
-              </section>
-            )}
-            {result.scenes.length > 0 && (
-              <section>
-                <h3>{t('bd.scenes')}</h3>
-                <ul>
-                  {result.scenes.map((s) => (
-                    <li key={s.title}>
-                      <strong>{s.title}</strong>
-                      {s.summary && <span className="sf-breakdown-desc"> {s.summary}</span>}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </div>
-        ) : (
-          <div className="sf-breakdown-state">
-            <p>{t('bd.intro', { model: cfg.model })}</p>
-            <button type="button" className="sf-control sf-save" onClick={run}>{t('bd.run')}</button>
-          </div>
-        )}
-        {truncNote && result && <p className="sf-breakdown-loading">{truncNote}</p>}
-      </div>
-    </div>
+    <Dialog label={t('bd.dialog')} onClose={props.onClose} className="sf-breakdown">
+      <button type="button" className="sf-close" aria-label={t('bd.close')} onClick={props.onClose}>×</button>
+      <h2 className="sf-doc-title">{t('bd.title')}</h2>
+      {!configured ? (
+        <div className="sf-breakdown-state">
+          <p>{t('bd.noProvider')}</p>
+          <button type="button" className="sf-control" onClick={props.onOpenSettings}>{t('bd.openSettings')}</button>
+        </div>
+      ) : running ? (
+        <>
+          <p className="sf-breakdown-kicker">{t('bd.reading')}</p>
+          <p className="sf-breakdown-loading">{t('bd.willAppear')}</p>
+        </>
+      ) : error ? (
+        <div className="sf-breakdown-state">
+          <p className="sf-ai-result sf-err">{error}</p>
+          <button type="button" className="sf-control" onClick={run}>{t('bd.retry')}</button>
+        </div>
+      ) : result ? (
+        <div className="sf-breakdown-body">
+          <p className="sf-breakdown-logline">{result.logline}</p>
+          {result.characters.length > 0 && (
+            <section>
+              <h3>{t('bd.characters')}</h3>
+              <ul>
+                {result.characters.map((c) => (
+                  <li key={c.name}>
+                    <strong>{c.name}</strong>
+                    {c.description && <span className="sf-breakdown-desc"> {c.description}</span>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {result.locations.length > 0 && (
+            <section>
+              <h3>{t('bd.locations')}</h3>
+              <p>{result.locations.join(' · ')}</p>
+            </section>
+          )}
+          {result.scenes.length > 0 && (
+            <section>
+              <h3>{t('bd.scenes')}</h3>
+              <ul>
+                {result.scenes.map((s) => (
+                  <li key={s.title}>
+                    <strong>{s.title}</strong>
+                    {s.summary && <span className="sf-breakdown-desc"> {s.summary}</span>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      ) : (
+        <div className="sf-breakdown-state">
+          <p>{t('bd.intro', { model: cfg.model })}</p>
+          <button type="button" className="sf-control sf-save" onClick={run}>{t('bd.run')}</button>
+        </div>
+      )}
+      {truncNote && result && <p className="sf-breakdown-loading">{truncNote}</p>}
+    </Dialog>
   )
 }

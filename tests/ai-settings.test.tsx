@@ -73,4 +73,29 @@ describe('AiSettings dialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /test connection/i }))
     await waitFor(() => expect(screen.getByText('Works')).toBeTruthy())
   })
+
+  it('shows the key link and the no-server note for a cloud provider', () => {
+    render(<AiSettings open onClose={() => {}} />)
+    expect(screen.queryByRole('link', { name: /get a key/i })).toBeNull()
+    fireEvent.change(screen.getByLabelText(/provider/i), { target: { value: 'mistral' } })
+    const link = screen.getByRole('link', { name: /get a key/i }) as HTMLAnchorElement
+    expect(link.href).toBe('https://console.mistral.ai/api-keys')
+    expect(screen.getByText(/your key stays in this browser/i)).toBeTruthy()
+  })
+
+  it('warns when a provider may block browser calls', () => {
+    render(<AiSettings open onClose={() => {}} />)
+    fireEvent.change(screen.getByLabelText(/provider/i), { target: { value: 'deepseek' } })
+    expect(screen.getByText(/may block calls from a web page/i)).toBeTruthy()
+  })
+
+  it('does not show one provider\'s key under another', () => {
+    render(<AiSettings open onClose={() => {}} />)
+    fireEvent.change(screen.getByLabelText(/provider/i), { target: { value: 'openai' } })
+    fireEvent.change(screen.getByLabelText(/api key/i), { target: { value: 'sk-openai' } })
+    fireEvent.change(screen.getByLabelText(/provider/i), { target: { value: 'xai' } })
+    expect((screen.getByLabelText(/api key/i) as HTMLInputElement).value).toBe('')
+    fireEvent.change(screen.getByLabelText(/provider/i), { target: { value: 'openai' } })
+    expect((screen.getByLabelText(/api key/i) as HTMLInputElement).value).toBe('sk-openai')
+  })
 })

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PROVIDERS } from '../src/ai/types'
 import type { AiConfig } from '../src/ai/types'
+import { normalizeAiConfig, switchProvider } from '../src/ai/config'
 
 function withStorage<T>(fn: () => T): T {
   const store = new Map<string, string>()
@@ -19,17 +20,20 @@ function withStorage<T>(fn: () => T): T {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('PROVIDERS registry', () => {
-  it('offers anthropic, gemini, ollama, lmstudio, openai, openrouter, opencode, custom', () => {
+  it('offers the local, cloud and other providers', () => {
     expect(PROVIDERS.map((p) => p.id).sort()).toEqual([
-      'anthropic',
-      'custom',
-      'gemini',
-      'lmstudio',
-      'ollama',
-      'openai',
-      'opencode',
-      'openrouter',
+      'anthropic', 'cerebras', 'cohere', 'custom', 'deepseek', 'fireworks', 'gemini', 'groq',
+      'huggingface', 'lmstudio', 'mistral', 'moonshot', 'ollama', 'openai', 'opencode', 'openrouter',
+      'perplexity', 'qwen', 'together', 'xai',
     ])
+  })
+
+  it('every cloud provider needs the writer\'s own key, served over https, with a key link', () => {
+    for (const p of PROVIDERS.filter((x) => x.group === 'cloud')) {
+      expect(p.needsKey, p.id).toBe(true)
+      expect(p.baseURL.startsWith('https://'), p.id).toBe(true)
+      expect(p.keyUrl?.startsWith('https://'), p.id).toBe(true)
+    }
   })
 
   it('local providers need no key, cloud ones do', () => {
@@ -83,5 +87,34 @@ describe('ai config storage', () => {
       expect(cfg.model).toBe('')
       expect(cfg.apiKey).toBeUndefined()
     })
+  })
+})
+
+describe('keys per provider', () => {
+  it('switching provider never carries the old key along', () => {
+    const openai: AiConfig = { provider: 'openai', endpoint: 'https://api.openai.com/v1', model: 'gpt-4o-mini', apiKey: 'sk-openai' }
+    const groq = switchProvider(openai, 'groq')
+    expect(groq).toMatchObject({ provider: 'groq', endpoint: 'https://api.groq.com/openai/v1', model: '' })
+    expect(groq.apiKey).toBeUndefined()
+    const back = switchProvider({ ...groq, apiKey: 'gsk_groq' }, 'openai')
+    expect(back.apiKey).toBe('sk-openai')
+    expect(switchProvider(back, 'groq').apiKey).toBe('gsk_groq')
+  })
+
+  it('keeps each key through save and load', async () => {
+    const { loadAiConfig, saveAiConfig } = await import('../src/ai/config')
+    withStorage(() => {
+      const cfg = switchProvider({ provider: 'mistral', endpoint: 'https://api.mistral.ai/v1', model: 'm', apiKey: 'mk' }, 'xai')
+      saveAiConfig({ ...cfg, apiKey: 'xai-1' })
+      const loaded = loadAiConfig()
+      expect(loaded.apiKey).toBe('xai-1')
+      expect(loaded.keys).toEqual({ mistral: 'mk', xai: 'xai-1' })
+    })
+  })
+
+  it('reads the active key from the keys map and drops unknown ids', () => {
+    const cfg = normalizeAiConfig({ provider: 'cohere', endpoint: 'x', model: 'c', keys: { cohere: 'co', warp: 'no', groq: 3 } })
+    expect(cfg.apiKey).toBe('co')
+    expect(cfg.keys).toEqual({ cohere: 'co' })
   })
 })

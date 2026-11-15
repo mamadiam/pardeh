@@ -42,7 +42,7 @@ There is no linter; TypeScript is `strict` with `noUnusedLocals` / `noUnusedPara
 | `src/storage/projects.ts` | Project index in localStorage `sf-projects` |
 | `src/storage/autosave.ts` | Debounced autosave with a visible error state |
 | `src/ai/client.ts` | One client (`chat`, `listModels`, `AiError`) for every provider: OpenAI-compatible by default, plus small built-in adapters for Claude's Messages API, Gemini's generateContent and the OpenCode service |
-| `src/ai/types.ts`, `config.ts` | Provider registry (Ollama, LM Studio, OpenAI, Claude, Gemini, OpenRouter, OpenCode, custom); config in localStorage `sf-ai` |
+| `src/ai/types.ts`, `config.ts` | Provider registry, grouped local / cloud (the writer's own key) / other: Ollama, LM Studio, OpenAI, Claude, Gemini, Mistral, DeepSeek, Grok, Groq, Cohere, Perplexity, Together, Fireworks, Cerebras, Qwen, Kimi, Hugging Face, OpenRouter, OpenCode, custom. Each provider keeps its own key (`keys` map); `switchProvider()` never carries a key to another provider. `browserLimited` marks providers that may block browser calls (no CORS). Config in localStorage `sf-ai` |
 | `src/ai/rewrite.ts`, `breakdown.ts`, `generate.ts` | Selection rewrite, script breakdown, generate-from-idea |
 | `src/ai/chat.ts`, `src/ui/SidePanel.tsx` | Side panel beside the page: **Chat** (free chat about the script plus slash commands `/scene /outline /character /punchup /format /coverage /pagecount /help`; history per project in localStorage `sf-chat:<id>`) and **Scenes** (timeline with page/runtime estimate, click to jump). Results wait for Insert / Replace this scene |
 | `src/glossary.ts`, `src/ui/GlossaryDialog.tsx` | Screenwriting glossary, written for this app in English and Persian |
@@ -70,9 +70,11 @@ These come from the filmnevis post-mortems and the design doc. Breaking one is a
    must each show a visible state (loading, error with Retry, "open settings"). AI output is inserted
    as plain text or typed blocks, and every insert is one undo step.
 6. **AI never silently replaces the writer's text.** It proposes; the writer accepts.
-7. **One AI client.** All providers go through `src/ai/client.ts`. Do not add provider SDKs; a provider
-   with its own API shape gets a small adapter there (see Claude: `x-api-key`, `anthropic-version`,
-   `anthropic-dangerous-direct-browser-access`).
+7. **One AI client, bring your own key.** All providers go through `src/ai/client.ts`. Do not add
+   provider SDKs; a provider with its own API shape gets a small adapter there (see Claude: `x-api-key`,
+   `anthropic-version`, `anthropic-dangerous-direct-browser-access`). An OpenAI-compatible provider is
+   only a registry entry in `types.ts`. Pardeh has no server: keys go from the writer's browser to
+   that provider only.
 8. **Free components only.** TipTap core (MIT) is fine; no paid/Pro extensions.
 9. **No lock-in.** Anything a writer creates must remain exportable.
 10. **Licence.** GPL-3.0-only. Code from filmnevis is GPL-3.0 and may be reused; keep Ebrahim Saedi's
@@ -136,13 +138,18 @@ each must pass its check before the next:
    undoable insert. Accepted scenes are approved artifacts; editing upstream marks later scenes for
    review, never rewrites them.
 8. Then: scene navigator, Fountain import/export, Tauri wrapper with OS-keychain API keys (keys are in
-   localStorage today, which is a known weakness).
+   localStorage today, which is a known weakness). The web app stays the main build; the Tauri shell
+   wraps it, and also removes the CORS limit on `browserLimited` providers. Consider doing this
+   earlier, right after step 2.
 
 Patterns borrowed from other tools (for context, not code): Dramatron's staged prompting (logline →
 characters → scenes → dialogue, Apache-2.0), Sudowrite's story bible, Highland's navigator and sprint
 timer, StudioBinder/Filmustage breakdown → shot list → schedule for the later filmmaker layer.
 
+## Decisions
+
+- Paper is A4 (Nov 14, 2026), the same as filmnevis-app.
+
 ## Open decisions
 
-- Default paper: filmnevis-app uses A4; Pardeh's design doc says US Letter.
 - Which local models write acceptable Persian scenes; test several before choosing defaults.

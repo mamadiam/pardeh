@@ -5,6 +5,7 @@ import { buildGeneratePrompt, docFromGenerated, parseGenerated } from '../ai/gen
 import type { GeneratedPackage } from '../ai/generate'
 import type { Direction, ScreenplayBlock, ScreenplayDoc } from '../core/types'
 import { useT } from '../i18n'
+import Dialog from './Dialog'
 
 // generation studio: an idea in, a full chapter out — either as a brand new
 // project or appended to the open screenplay
@@ -37,15 +38,6 @@ export default function GeneratePanel(props: {
   }, [props.open])
 
   // Esc closes (aria-modal dialog)
-  useEffect(() => {
-    if (!props.open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') props.onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [props])
-
   if (!props.open) return null
 
   const cfg = loadAiConfig()
@@ -86,65 +78,63 @@ export default function GeneratePanel(props: {
   }
 
   return (
-    <div className="sf-ai-overlay" role="dialog" aria-modal="true" aria-label={t('gen.dialog')}>
-      <div className="sf-ai-settings sf-generate">
-        <button type="button" className="sf-close" aria-label={t('gen.close')} onClick={props.onClose}>×</button>
-        <h2>{t('gen.title')}</h2>
-        {continueMode ? (
-          <p className="sf-ai-note">{t('gen.noteAppend')}</p>
-        ) : (
-          <p className="sf-ai-note">{t('gen.noteNew')}</p>
-        )}
-        {hasScript && (
-          <label className="sf-check">
-            <input
-              type="checkbox"
-              aria-label={t('gen.continueLabel')}
-              checked={continueMode}
-              onChange={(e) => setContinueMode(e.target.checked)}
-            />
-            {t('gen.continue')}
-          </label>
-        )}
-        <label>
-          {t('gen.idea')}
-          <textarea
-            aria-label={t('gen.ideaLabel')}
-            rows={4}
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            placeholder={t('gen.ideaPlaceholder')}
-          />
-        </label>
-        <label>
-          {t('gen.genre')}
+    <Dialog label={t('gen.dialog')} onClose={props.onClose} className="sf-ai-settings sf-generate">
+      <button type="button" className="sf-close" aria-label={t('gen.close')} onClick={props.onClose}>×</button>
+      <h2>{t('gen.title')}</h2>
+      {continueMode ? (
+        <p className="sf-ai-note">{t('gen.noteAppend')}</p>
+      ) : (
+        <p className="sf-ai-note">{t('gen.noteNew')}</p>
+      )}
+      {hasScript && (
+        <label className="sf-check">
           <input
-            aria-label={t('gen.genreLabel')}
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            placeholder={t('gen.genrePlaceholder')}
+            type="checkbox"
+            aria-label={t('gen.continueLabel')}
+            checked={continueMode}
+            onChange={(e) => setContinueMode(e.target.checked)}
           />
+          {t('gen.continue')}
         </label>
-        <div className="sf-ai-row">
-          <button type="button" className="sf-control sf-save" onClick={run} disabled={running || idea.trim() === ''}>
-            {running ? t('gen.writing') : t('gen.run')}
-          </button>
-          {error && <span className="sf-rewrite-error">{error}</span>}
-        </div>
-        {result && (
-          <div className="sf-generate-result">
-            <p className="sf-generate-title">{result.title}</p>
-            {result.logline && <p className="sf-ai-note">{result.logline}</p>}
-            <p className="sf-ai-note">
-              {result.genre && `${result.genre} — `}
-              {t('gen.summary', { characters: result.characters.length, scenes: result.scenes.length })}
-            </p>
-            <button type="button" className="sf-control sf-save" onClick={deliver}>
-              {continueMode ? t('gen.append') : t('gen.openNew')}
-            </button>
-          </div>
-        )}
+      )}
+      <label>
+        {t('gen.idea')}
+        <textarea
+          aria-label={t('gen.ideaLabel')}
+          rows={4}
+          value={idea}
+          onChange={(e) => setIdea(e.target.value)}
+          placeholder={t('gen.ideaPlaceholder')}
+        />
+      </label>
+      <label>
+        {t('gen.genre')}
+        <input
+          aria-label={t('gen.genreLabel')}
+          value={genre}
+          onChange={(e) => setGenre(e.target.value)}
+          placeholder={t('gen.genrePlaceholder')}
+        />
+      </label>
+      <div className="sf-ai-row">
+        <button type="button" className="sf-control sf-save" onClick={run} disabled={running || idea.trim() === ''}>
+          {running ? t('gen.writing') : t('gen.run')}
+        </button>
+        {error && <span className="sf-rewrite-error">{error}</span>}
       </div>
-    </div>
+      {result && (
+        <div className="sf-generate-result">
+          <p className="sf-generate-title">{result.title}</p>
+          {result.logline && <p className="sf-ai-note">{result.logline}</p>}
+          <p className="sf-ai-note">
+            {result.genre && `${result.genre} — `}
+            {t('gen.summary', { characters: result.characters.length, scenes: result.scenes.length })}
+          </p>
+          <button type="button" className="sf-control sf-save" onClick={deliver}>
+            {continueMode ? t('gen.append') : t('gen.openNew')}
+          </button>
+        </div>
+      )}
+    </Dialog>
   )
 }

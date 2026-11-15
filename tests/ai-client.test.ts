@@ -99,3 +99,39 @@ describe('listModels', () => {
     expect((err as AiError).code).toBe('network')
   })
 })
+
+describe('bring your own key', () => {
+  const groq: AiConfig = { provider: 'groq', endpoint: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile', apiKey: 'gsk_k' }
+
+  it('sends the key when it lists models', async () => {
+    const f = vi.fn(async (_url: string, init: RequestInit) => {
+      expect((init.headers as Record<string, string>).Authorization).toBe('Bearer gsk_k')
+      return new Response(JSON.stringify({ data: [{ id: 'llama-3.3-70b-versatile' }] }), { status: 200 })
+    })
+    vi.stubGlobal('fetch', f)
+    expect(await listModels(groq)).toEqual(['llama-3.3-70b-versatile'])
+    expect(f.mock.calls[0][0]).toBe('https://api.groq.com/openai/v1/models')
+  })
+
+  it('reads a bare array model list (Together)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify([{ id: 'meta-llama/Llama-3.3-70B' }]), { status: 200 })))
+    const together: AiConfig = { provider: 'together', endpoint: 'https://api.together.xyz/v1', model: '', apiKey: 'k' }
+    expect(await listModels(together)).toEqual(['meta-llama/Llama-3.3-70B'])
+  })
+
+  it('reports a rejected key as an HTTP error, not an empty list', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 401 })))
+    const err = await listModels(groq).catch((e: unknown) => e)
+    expect((err as AiError).code).toBe('http-401')
+  })
+
+  it('a cloud provider without a key fails before any request', async () => {
+    const f = vi.fn()
+    vi.stubGlobal('fetch', f)
+    const noKey = { ...groq, apiKey: undefined }
+    const err = await chat(noKey, [{ role: 'user', content: 'x' }]).catch((e: unknown) => e)
+    expect((err as AiError).code).toBe('no-config')
+    expect((await listModels(noKey).catch((e: unknown) => e) as AiError).code).toBe('no-config')
+    expect(f).not.toHaveBeenCalled()
+  })
+})
