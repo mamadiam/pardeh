@@ -55,13 +55,13 @@ export default function SidePanel(props: {
           </button>
         </div>
         <button type="button" className="sf-iconbtn" title={t('panel.glossary')} aria-label={t('panel.glossary')} onClick={props.onOpenGlossary}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5v-2Z" />
             <path d="M8 7h8M8 11h6" />
           </svg>
         </button>
         <button type="button" className="sf-iconbtn" title={t('panel.close')} aria-label={t('panel.close')} onClick={props.onClose}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
       </div>
       {tab === 'chat' ? <ChatTab {...props} /> : <ScenesTab editor={props.editor} meta={props.meta} direction={props.direction} />}

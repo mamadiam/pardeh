@@ -1,5 +1,6 @@
 import './App.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import type { Editor } from '@tiptap/core'
 import type { ScreenplayDoc, Direction, ElementType, ScreenplayBlock } from './core/types'
 import { saveToJson, loadFromJson } from './core/serialize'
@@ -232,14 +233,28 @@ export default function App(props: {
   }, [])
 
   const toggleTheme = useCallback(() => {
-    setTheme((t) => {
-      const next = t === 'light' ? 'dark' : 'light'
-      try {
-        localStorage.setItem('sf-theme', next)
-      } catch {
-        // storage may be unavailable; the session keeps the choice
-      }
-      return next
+    // kill every transition for one frame so the theme swap does not smear
+    const style = document.createElement('style')
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const icon = reduce
+      ? '.sf-icon-swap svg{transition-property:opacity!important;transition-duration:300ms!important;transition-timing-function:cubic-bezier(0.2,0,0,1)!important}'
+      : '.sf-icon-swap svg{transition-property:opacity,scale,filter!important;transition-duration:300ms!important;transition-timing-function:cubic-bezier(0.2,0,0,1)!important}'
+    style.appendChild(document.createTextNode(`*,*::before,*::after{transition:none!important}${icon}`))
+    document.head.appendChild(style)
+    flushSync(() => {
+      setTheme((t) => {
+        const next = t === 'light' ? 'dark' : 'light'
+        try {
+          localStorage.setItem('sf-theme', next)
+        } catch {
+          // storage may be unavailable; the session keeps the choice
+        }
+        return next
+      })
+    })
+    void document.body.offsetHeight
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => style.remove())
     })
   }, [])
 

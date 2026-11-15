@@ -15,6 +15,11 @@
   --text: #131416;
   --muted: #5d5b57;
   --primary: #1d1c1a;
+  /* elevation: 1px ring, then lift, then ambient. forced-colors drops the shadow and paints the transparent border */
+  --shadow-border:
+    0px 0px 0px 1px oklch(0 0 0 / 0.06),
+    0px 1px 2px -1px oklch(0 0 0 / 0.06),
+    0px 2px 4px 0px oklch(0 0 0 / 0.04);
   /* status pills: text, never the only cue */
   --ok: #04250e;
   --ok-bg: #dcfae5;
@@ -37,6 +42,8 @@
   --text: #f2f2ef;
   --muted: #a5a29c;
   --primary: #f2f2ef;
+  /* depth shadows vanish on dark; one white ring keeps the edge */
+  --shadow-border: 0 0 0 1px oklch(1 0 0 / 0.08);
   --ok: #b8f0c8;
   --ok-bg: #10321f;
   --danger: #f3a6a4;
@@ -147,7 +154,7 @@ body {
   border: 0;
   margin-inline-start: -8px;
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: 6px;
   background: none;
   color: var(--text);
   cursor: pointer;
@@ -197,13 +204,6 @@ body {
   font: 500 14px/1 var(--font);
   padding: 0 12px;
   cursor: pointer;
-  transition: scale 150ms ease-out;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .sf-control:not(:disabled):active {
-    scale: 0.96;
-  }
 }
 
 @media (hover: hover) {
@@ -227,6 +227,25 @@ body {
 .sf-control:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* every button: own pressed state, so the browser gray flash stays off */
+.sf-app button {
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, color, border-color, filter;
+  transition-duration: 100ms;
+  transition-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sf-app button:not(:disabled) {
+    transition-property: background-color, color, border-color, filter, scale;
+    transition-duration: 100ms, 100ms, 100ms, 100ms, 150ms;
+  }
+
+  .sf-app button:not(:disabled):active {
+    scale: 0.96;
+  }
 }
 
 .sf-toolbar .sf-element-select {
@@ -295,6 +314,49 @@ body {
   height: 16px;
 }
 
+/* stroke width is in rendered pixels, not scaled with the 24px grid */
+.sf-app svg :is(path, circle, line, polyline, polygon, rect) {
+  vector-effect: non-scaling-stroke;
+}
+
+/* sun and moon stay mounted so the swap can reverse mid-flight */
+.sf-icon-swap {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+
+.sf-icon-swap svg {
+  grid-area: 1 / 1;
+  transition-property: opacity;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.sf-icon-swap[data-icon='sun'] .sf-icon-moon,
+.sf-icon-swap[data-icon='moon'] .sf-icon-sun {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sf-icon-swap svg {
+    transition-property: opacity, scale, filter;
+  }
+
+  .sf-icon-swap[data-icon='sun'] .sf-icon-sun,
+  .sf-icon-swap[data-icon='moon'] .sf-icon-moon {
+    scale: 1;
+    filter: blur(0px);
+  }
+
+  .sf-icon-swap[data-icon='sun'] .sf-icon-moon,
+  .sf-icon-swap[data-icon='moon'] .sf-icon-sun {
+    scale: 0.25;
+    filter: blur(4px);
+  }
+}
+
 @media (hover: hover) {
   .sf-iconbtn:hover {
     background: var(--active);
@@ -336,13 +398,14 @@ body {
   max-width: calc(100vw - 32px);
   max-height: 80vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: 16px;
   padding: 24px;
   display: grid;
   gap: 14px;
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+  box-shadow: var(--shadow-border);
 }
 
 .sf-breakdown-state {
@@ -475,10 +538,10 @@ body {
   z-index: 30;
   display: grid;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: 11px; /* 6px button + 4px padding + 1px border */
   padding: 4px;
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+  box-shadow: var(--shadow-border);
 }
 
 .sf-floating-menu button {
@@ -544,12 +607,12 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: 16px;
   padding: 24px;
   display: grid;
   gap: 14px;
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+  box-shadow: var(--shadow-border);
 }
 
 .sf-ai-settings h2 {
@@ -675,10 +738,10 @@ body {
   align-items: center;
   gap: 4px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: 11px; /* 6px button + 4px padding + 1px border */
   padding: 4px;
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+  box-shadow: var(--shadow-border);
 }
 
 .sf-selection-menu button {
@@ -776,7 +839,7 @@ body {
   overscroll-behavior: contain;
   background: var(--raised);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 12px 14px;
   display: grid;
   gap: 6px;
@@ -1035,7 +1098,7 @@ body {
   min-height: 44px;
   max-height: 160px;
   border: 1px solid var(--control);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--surface);
   color: var(--text);
   font: 400 14px/1.6 var(--font);
@@ -1055,9 +1118,9 @@ body {
   margin: 0;
   padding: 4px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+  border: 1px solid transparent;
+  border-radius: 11px; /* 6px row + 4px padding + 1px border */
+  box-shadow: var(--shadow-border);
   z-index: 5;
 }
 
@@ -1134,7 +1197,7 @@ body {
   align-items: flex-start;
   gap: 10px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: none;
   color: var(--text);
   padding: 8px;
@@ -1269,9 +1332,10 @@ body {
     width: min(420px, 100vw);
     margin: 0;
     border-radius: 0;
+    border-color: transparent;
     border-block: 0;
     border-inline-end: 0;
     z-index: 25;
-    box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+    box-shadow: var(--shadow-border);
   }
 }
