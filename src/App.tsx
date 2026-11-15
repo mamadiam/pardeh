@@ -354,12 +354,13 @@ export default function App(props: {
             setHeaderMenu({ x: r.left, y: r.bottom + 4, kind: 'projects' })
           }}
         >
-          {/* the mark: a clapperboard, drawn from the product's object */}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2.5" y="9.5" width="19" height="11.5" rx="1.5" />
-            <path d="M3 9.5 4.8 4.6a1 1 0 0 1 1.3-.6l14.2 4.2-.6 1.3" />
-            <path d="M8.3 9.3l1.6-4.9M13.9 9.6l1.6-4.9" />
+          {/* the mark: the curtain, drawn from the product's own object */}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 19.5V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v13.5" />
+            <path d="M7 4.2c0 4.4 2.1 6.3 5 6.3s5-1.9 5-6.3" />
+            <path d="M2.5 19.5h19" />
           </svg>
+          <span className="sf-wordmark">{t('app.name')}</span>
         </button>
         {renaming ? (
           <input
@@ -377,15 +378,22 @@ export default function App(props: {
         ) : (
           <h1
             className="sf-doc-title"
+            tabIndex={0}
+            aria-haspopup="menu"
             onContextMenu={(e) => {
               e.preventDefault()
               setHeaderMenu({ x: e.clientX, y: e.clientY, kind: 'title' })
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return
+              e.preventDefault()
+              const r = e.currentTarget.getBoundingClientRect()
+              setHeaderMenu({ x: r.left, y: r.bottom + 4, kind: 'title' })
             }}
           >
             {doc.meta.title || t('app.untitled')}
           </h1>
         )}
-        <span className="sf-divider" aria-hidden="true" />
         <Toolbar
           editor={editor}
           currentElement={currentElement ?? 'scene'}
@@ -404,7 +412,6 @@ export default function App(props: {
           onTogglePanel={() => togglePanel(!panelOpen)}
           panelOpen={panelOpen}
         />
-        <span className="sf-spacer" />
         <StatusBar
           editor={editor}
           currentElement={currentElement ?? 'scene'}

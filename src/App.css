@@ -72,17 +72,38 @@ body {
   border-block: 1px solid var(--border);
 }
 
-/* ── Top bar: 44px on frame tint, wraps to two rows on narrow ── */
+/* ── Top bar: brand and title on top, the tools across their own row ── */
 .sf-topbar {
-  min-height: 44px;
   flex: none;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'brand title status'
+    'tools tools tools';
   align-items: center;
-  flex-wrap: wrap;
-  row-gap: 0;
   column-gap: 12px;
-  padding: 0 16px;
+  row-gap: 6px;
+  min-height: 44px;
+  padding: 6px 16px;
   background: var(--ground);
+}
+
+.sf-badge {
+  grid-area: brand;
+}
+
+.sf-doc-title,
+.sf-title-input {
+  grid-area: title;
+  min-width: 0;
+}
+
+.sf-toolbar {
+  grid-area: tools;
+}
+
+.sf-statusbar {
+  grid-area: status;
 }
 
 .sf-topbar-row,
@@ -93,19 +114,21 @@ body {
 
 @media (max-width: 700px) {
   .sf-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand status'
+      'title title'
+      'tools tools';
+    row-gap: 4px;
     padding: 6px 16px;
   }
 
-  .sf-divider,
-  .sf-spacer {
+  .sf-wordmark {
     display: none;
   }
 
   .sf-toolbar {
-    flex: 1 1 100%;
     flex-wrap: wrap;
-    padding-block: 6px;
-    border-top: 1px solid var(--rule);
   }
 
   .sf-toolbar .sf-control {
@@ -122,15 +145,30 @@ body {
   align-items: center;
   gap: 8px;
   border: 0;
-  padding: 0;
+  margin-inline-start: -8px;
+  padding: 4px 8px;
+  border-radius: 8px;
   background: none;
   color: var(--text);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .sf-badge:hover {
+    background: var(--active);
+  }
 }
 
 .sf-badge svg {
   width: 20px;
   height: 20px;
+  flex: none;
   color: var(--accent);
+}
+
+.sf-wordmark {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .sf-doc-title {
@@ -140,17 +178,6 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.sf-topbar .sf-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border);
-  flex: none;
-}
-
-.sf-spacer {
-  flex: 1;
 }
 
 /* toolbar controls live in the top bar */
@@ -537,7 +564,9 @@ body {
 
 .sf-ai-settings :is(select, input):focus-visible,
 .sf-control:focus-visible,
-.sf-iconbtn:focus-visible {
+.sf-iconbtn:focus-visible,
+.sf-badge:focus-visible,
+.sf-doc-title:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
@@ -896,7 +925,7 @@ body {
 .sf-chat-suggest code {
   flex: none;
   min-width: 6.5em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font);
   font-size: 12px;
   direction: ltr;
   text-align: start;

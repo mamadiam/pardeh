@@ -12,6 +12,7 @@ export function langFor(direction: Direction): Lang {
 
 const en = {
   'app.untitled': 'Untitled screenplay',
+  'app.name': 'Pardeh',
   'app.projects': 'projects',
   'app.titleInput': 'screenplay title',
   'menu.newScreenplay': 'New screenplay',
@@ -180,6 +181,7 @@ export type StringKey = keyof typeof en
 
 const fa: Record<StringKey, string> = {
   'app.untitled': 'فیلم‌نامه‌ی بی‌نام',
+  'app.name': 'پرده',
   'app.projects': 'پروژه‌ها',
   'app.titleInput': 'عنوان فیلم‌نامه',
   'menu.newScreenplay': 'فیلم‌نامه‌ی جدید',
