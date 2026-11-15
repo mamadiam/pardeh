@@ -28,6 +28,9 @@ npm run build     # tsc -b && vite build — must pass before you call work done
 
 There is no linter; TypeScript is `strict` with `noUnusedLocals` / `noUnusedParameters`.
 
+Version lives in `package.json` (currently `0.1.0`). Release with a `vX.Y.Z` tag; `main` is the live
+branch.
+
 ## Map
 
 | Path | What lives there |
@@ -48,12 +51,16 @@ There is no linter; TypeScript is `strict` with `noUnusedLocals` / `noUnusedPara
 | `src/glossary.ts`, `src/ui/GlossaryDialog.tsx` | Screenwriting glossary, written for this app in English and Persian |
 | `src/ai/language.ts` | `writeIn(direction)`: Persian mode always asks the model for Persian |
 | `src/ai/assist.ts`, `src/ui/AssistPanel.tsx` | Writer's Assistant: ideas for what happens next or for this scene, fill the gap (inserted at the cursor as one undo step), ask anything; reads the scene around the cursor |
-| `src/ui/*` | Toolbar, StatusBar, EditorView, SelectionMenu, FloatingMenu, AiSettings, BreakdownPanel, GeneratePanel |
+| `src/ui/Dialog.tsx` | The one modal shell: scrim, focus in on open, Tab kept inside, Escape, focus back to the trigger. Every panel renders through it; never build a second overlay |
+| `src/ui/*` | TopBar is the header inside `App.tsx`: brand lockup (curtain mark + name), document title, toolbar on its own row, status bar. Toolbar, StatusBar, EditorView, SelectionMenu, FloatingMenu, AiSettings, BreakdownPanel, GeneratePanel, AssistPanel |
 | `src/App.tsx`, `App.css` | App shell, project switching, design tokens and all component styles |
 | `src/i18n.tsx` | English and Persian strings; language follows direction |
 | `tests/` | One test file per feature; `tests/setup.ts` loads `fake-indexeddb/auto` |
 | `docs/superpowers/specs`, `plans` | Design docs and task-by-task plans; read the newest before a feature |
 | `.taste-skill/direction.json` | The visual style contract (framed-sheet), see UI rules |
+| `.github/workflows/deploy.yml` | Tests, builds and deploys `dist` to GitHub Pages on every push to `main` |
+| `vite.config.ts` | Vitest settings, plus the `/pardeh/` base that only applies when `GITHUB_ACTIONS` is set |
+| `README.md`, `LICENSE` | Public front page and GPL-3.0 text |
 
 ## Rules that must not break
 
@@ -100,6 +107,10 @@ These come from the filmnevis post-mortems and the design doc. Breaking one is a
   tests.
 - For UI reviews, use the ibelick `ui-skills` (`improve-ui` audits without editing; `baseline-ui`,
   `fixing-accessibility` for fixes).
+- The header is two grid rows: brand, title and save state on the first; the toolbar across the
+  second; brand and state, title, tools under 700px. Keep that structure instead of adding another bar.
+- Focus, Escape and the scrim come from `Dialog`. A new panel means a new `Dialog` child, not new key
+  handling.
 
 ## How to work
 
@@ -145,6 +156,17 @@ each must pass its check before the next:
 Patterns borrowed from other tools (for context, not code): Dramatron's staged prompting (logline →
 characters → scenes → dialogue, Apache-2.0), Sudowrite's story bible, Highland's navigator and sprint
 timer, StudioBinder/Filmustage breakdown → shot list → schedule for the later filmmaker layer.
+
+## Shipping
+
+- Host: GitHub Pages at <https://mamadiam.github.io/pardeh/>, repo `mamadiam/pardeh`, deployed by
+  `.github/workflows/deploy.yml` with Pages source set to GitHub Actions. A push to `main` publishes;
+  there is no manual deploy step and no server.
+- The base path is `/pardeh/` only when the build runs on Actions, so `npm run dev` stays on `/`.
+- A release is a commit that bumps `package.json`, plus an annotated `vX.Y.Z` tag pushed with the
+  branch.
+- Vercel and Cloudflare Pages were considered and rejected: both need a second account and app
+  install, and neither adds anything a static build needs.
 
 ## Decisions
 
