@@ -16,6 +16,8 @@ const testConfig = defineTestConfig({
 export default mergeConfig(
   defineConfig({
     plugins: [react()],
+    // GitHub Pages serves a project site under /<repo>/
+    base: process.env.GITHUB_ACTIONS ? '/pardeh/' : '/',
   }),
   testConfig,
 )
